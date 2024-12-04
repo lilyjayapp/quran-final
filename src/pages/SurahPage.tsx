@@ -1,10 +1,13 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const SurahPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
 
   if (isLoading) {
@@ -25,6 +28,17 @@ const SurahPage = () => {
 
   return (
     <div className="container py-8 pb-32">
+      <div className="flex justify-end mb-4">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Button>
+      </div>
+      
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">{surah?.englishName}</h1>
         <p className="text-gray-600">{surah?.englishNameTranslation}</p>
