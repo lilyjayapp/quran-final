@@ -24,7 +24,7 @@ const SurahPage = () => {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 pb-32">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">{surah?.englishName}</h1>
         <p className="text-gray-600">{surah?.englishNameTranslation}</p>
@@ -38,13 +38,19 @@ const SurahPage = () => {
               <span className="bg-primary text-white px-3 py-1 rounded">
                 {verse.numberInSurah}
               </span>
-              <AudioPlayer src={verse.audio} />
             </div>
             <p className="arabic-text text-right mb-4">{verse.text}</p>
             <p className="text-gray-700">{verse.translation}</p>
           </div>
         ))}
       </div>
+
+      {surah && (
+        <AudioPlayer 
+          verses={surah.verses}
+          currentSurahNumber={surah.number}
+        />
+      )}
     </div>
   );
 };
