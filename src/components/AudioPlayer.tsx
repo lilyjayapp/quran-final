@@ -2,6 +2,13 @@ import React, { useState, useRef, useEffect } from "react";
 import { Play, Pause, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AudioPlayerProps {
   verses: {
@@ -10,20 +17,33 @@ interface AudioPlayerProps {
     translation: string;
   }[];
   currentSurahNumber: number;
+  onVerseChange?: (verseNumber: number) => void;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber }) => {
+const AudioPlayer: React.FC<AudioPlayerProps> = ({ 
+  verses, 
+  currentSurahNumber,
+  onVerseChange 
+}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
+  const [recitationLanguage, setRecitationLanguage] = useState("arabic");
   const audioRef = useRef<HTMLAudioElement>(null);
   const navigate = useNavigate();
 
   const playNextVerse = () => {
     if (currentVerseIndex < verses.length - 1) {
-      setCurrentVerseIndex(prev => prev + 1);
+      const nextIndex = currentVerseIndex + 1;
+      setCurrentVerseIndex(nextIndex);
+      if (onVerseChange) {
+        onVerseChange(verses[nextIndex].number);
+      }
     } else {
       setIsPlaying(false);
       setCurrentVerseIndex(0);
+      if (onVerseChange) {
+        onVerseChange(verses[0].number);
+      }
     }
   };
 
@@ -39,6 +59,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber })
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
+    if (onVerseChange) {
+      onVerseChange(verses[currentVerseIndex].number);
+    }
   };
 
   const resetAudio = () => {
@@ -47,6 +70,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber })
       audioRef.current.pause();
       setIsPlaying(false);
       setCurrentVerseIndex(0);
+      if (onVerseChange) {
+        onVerseChange(verses[0].number);
+      }
     }
   };
 
@@ -59,6 +85,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber })
       resetAudio();
       navigate(`/surah/${nextSurahNumber}`);
     }
+  };
+
+  const getAudioUrl = (verseNumber: number) => {
+    const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
+    return recitationLanguage === "arabic" 
+      ? `${baseUrl}ar.alafasy/${verseNumber}.mp3`
+      : `${baseUrl}en.walk/${verseNumber}.mp3`;
   };
 
   return (
@@ -95,6 +128,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber })
           >
             <SkipForward size={20} />
           </Button>
+          <Select
+            value={recitationLanguage}
+            onValueChange={setRecitationLanguage}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="arabic">Arabic</SelectItem>
+              <SelectItem value="english">English</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="text-sm text-gray-600">
           {verses[currentVerseIndex]?.translation}
@@ -102,7 +147,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ verses, currentSurahNumber })
       </div>
       <audio
         ref={audioRef}
-        src={verses[currentVerseIndex]?.audio}
+        src={getAudioUrl(verses[currentVerseIndex]?.number)}
         onEnded={playNextVerse}
         className="hidden"
       />

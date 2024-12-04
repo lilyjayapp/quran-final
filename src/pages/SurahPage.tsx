@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 
 const SurahPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
+  const [currentVerseNumber, setCurrentVerseNumber] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -28,14 +29,14 @@ const SurahPage = () => {
 
   return (
     <div className="container py-8 pb-32">
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between mb-4">
         <Button
           variant="outline"
           onClick={() => navigate('/')}
           className="flex items-center gap-2"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Home
+          <Home className="h-4 w-4" />
+          Back to Surah List
         </Button>
       </div>
       
@@ -47,7 +48,10 @@ const SurahPage = () => {
       
       <div className="max-w-3xl mx-auto">
         {surah?.verses.map((verse) => (
-          <div key={verse.number} className="verse-container">
+          <div 
+            key={verse.number} 
+            className={`verse-container ${currentVerseNumber === verse.number ? 'bg-primary/10' : ''}`}
+          >
             <div className="flex justify-between items-start mb-4">
               <span className="bg-primary text-white px-3 py-1 rounded">
                 {verse.numberInSurah}
@@ -63,6 +67,7 @@ const SurahPage = () => {
         <AudioPlayer 
           verses={surah.verses}
           currentSurahNumber={surah.number}
+          onVerseChange={setCurrentVerseNumber}
         />
       )}
     </div>

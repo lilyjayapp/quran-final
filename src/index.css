@@ -13,7 +13,7 @@ body {
 }
 
 .verse-container {
-  @apply p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors;
+  @apply p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-300;
 }
 
 .surah-card {
