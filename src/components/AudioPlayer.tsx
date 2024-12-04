@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { reciters } from "@/utils/reciters";
 
 interface AudioPlayerProps {
   verses: {
@@ -28,6 +29,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [recitationLanguage, setRecitationLanguage] = useState("arabic");
+  const [selectedReciter, setSelectedReciter] = useState(() => 
+    localStorage.getItem('selectedReciter') || reciters[0].identifier
+  );
   const audioRef = useRef<HTMLAudioElement>(null);
   const navigate = useNavigate();
 
@@ -90,7 +94,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const getAudioUrl = (verseNumber: number) => {
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
     return recitationLanguage === "arabic" 
-      ? `${baseUrl}ar.alafasy/${verseNumber}.mp3`
+      ? `${baseUrl}${selectedReciter}/${verseNumber}.mp3`
       : `${baseUrl}en.walk/${verseNumber}.mp3`;
   };
 
