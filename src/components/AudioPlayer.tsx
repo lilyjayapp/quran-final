@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Play, Pause, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "./ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   );
   const audioRef = useRef<HTMLAudioElement>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const playNextVerse = () => {
     if (currentVerseIndex < verses.length - 1) {
@@ -54,24 +56,50 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play();
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.error("Audio playback error:", error);
+            setIsPlaying(false);
+            toast({
+              title: "Playback Error",
+              description: "There was an error playing the audio. Please try again.",
+              variant: "destructive",
+            });
+          });
+        }
       } else {
         audioRef.current.pause();
       }
     }
-  }, [isPlaying, currentVerseIndex]);
+  }, [isPlaying, currentVerseIndex, toast]);
 
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-    if (onVerseChange) {
-      onVerseChange(verses[currentVerseIndex].number);
+  const togglePlay = async () => {
+    try {
+      if (audioRef.current) {
+        if (!isPlaying) {
+          // Ensure audio is loaded before attempting to play
+          await audioRef.current.load();
+        }
+        setIsPlaying(!isPlaying);
+        if (onVerseChange) {
+          onVerseChange(verses[currentVerseIndex].number);
+        }
+      }
+    } catch (error) {
+      console.error("Toggle play error:", error);
+      toast({
+        title: "Playback Error",
+        description: "There was an error controlling the audio. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const resetAudio = () => {
     if (audioRef.current) {
-      audioRef.current.currentTime = 0;
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
       setIsPlaying(false);
       setCurrentVerseIndex(0);
       if (onVerseChange) {
@@ -153,6 +181,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         ref={audioRef}
         src={getAudioUrl(verses[currentVerseIndex]?.number)}
         onEnded={playNextVerse}
+        preload="auto"
         className="hidden"
       />
     </div>
