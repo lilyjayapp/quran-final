@@ -46,8 +46,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      console.log("Current reciter:", selectedReciter);
-      console.log("Current language:", recitationLanguage);
+      console.log("Audio Error Details:");
+      console.log("- Current reciter:", selectedReciter);
+      console.log("- Current language:", recitationLanguage);
+      console.log("- Current verse number:", verses[currentVerseIndex]?.number);
+      
+      toast.error("Audio not available", {
+        description: "Please try again later or select a different reciter.",
+        action: {
+          label: "Retry",
+          onClick: retryPlayback,
+        },
+      });
     }
   });
 
@@ -62,15 +72,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const getAudioUrl = (verseNumber: number) => {
+    let url = "";
+    
     if (recitationLanguage === "english") {
-      // Updated English audio URL structure
-      return `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
+      url = `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
+    } else {
+      url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
     }
     
-    const reciter = selectedReciter;
-    const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-    const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
     console.log("Generated audio URL:", url);
+    console.log("Audio settings:", {
+      language: recitationLanguage,
+      reciter: selectedReciter,
+      verseNumber: verseNumber
+    });
+    
     return url;
   };
 
