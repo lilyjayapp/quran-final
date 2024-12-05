@@ -13,7 +13,7 @@ interface Verse {
   text: string;
   numberInSurah: number;
   audio: string;
-  translation: string;  // Added this property
+  translation: string;
 }
 
 interface SurahDetail {
@@ -38,6 +38,8 @@ export const useSurahs = () => {
 export const useSurahDetail = (surahNumber: number) => {
   const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en.asad';
   
+  console.log("Selected Language Code:", selectedLanguage);
+  
   return useQuery({
     queryKey: ["surah", surahNumber, selectedLanguage],
     queryFn: async () => {
@@ -59,28 +61,16 @@ export const useSurahDetail = (surahNumber: number) => {
         const arabicData = await arabicResponse.json();
         const translationData = await translationResponse.json();
 
-        console.log("Arabic Response Status:", arabicResponse.status);
-        console.log("Translation Response Status:", translationResponse.status);
         console.log("Arabic Data:", arabicData);
         console.log("Translation Data:", translationData);
 
-        if (!arabicData.data || !arabicData.data.ayahs) {
-          throw new Error('Invalid Arabic data structure');
-        }
-        if (!translationData.data || !translationData.data.ayahs) {
-          throw new Error('Invalid translation data structure');
-        }
-
-        const verses = arabicData.data.ayahs.map((verse: any, index: number) => {
-          const translation = translationData.data.ayahs[index]?.text || "Translation unavailable";
-          return {
-            number: verse.number,
-            text: verse.text,
-            numberInSurah: verse.numberInSurah,
-            translation: translation,
-            audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
-          };
-        });
+        const verses = arabicData.data.ayahs.map((verse: any, index: number) => ({
+          number: verse.number,
+          text: verse.text,
+          numberInSurah: verse.numberInSurah,
+          translation: translationData.data.ayahs[index]?.text || "Translation unavailable",
+          audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
+        }));
 
         return {
           ...arabicData.data,
