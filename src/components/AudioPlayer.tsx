@@ -52,10 +52,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       console.log("- Current verse number:", verses[currentVerseIndex]?.number);
       
       toast.error("Audio not available", {
-        description: "Please try again later or select a different reciter.",
+        description: "Please try switching to Arabic recitation or selecting a different reciter.",
         action: {
-          label: "Retry",
-          onClick: retryPlayback,
+          label: "Switch to Arabic",
+          onClick: () => {
+            setRecitationLanguage("arabic");
+            setSelectedReciter("ar.alafasy");
+            setTimeout(retryPlayback, 500); // Give time for the audio source to update
+          },
         },
       });
     }
@@ -72,10 +76,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const getAudioUrl = (verseNumber: number) => {
+    if (!verseNumber) return "";
+    
     let url = "";
     
     if (recitationLanguage === "english") {
-      url = `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
+      url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3`;
     } else {
       url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
     }
@@ -109,16 +115,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setRecitationLanguage(value);
     
     if (value === "english") {
-      setSelectedReciter("en.walk");
+      setSelectedReciter("ar.alafasy");
+      toast.info("Switching to English", {
+        description: "Note: English audio may not be available for all verses. You can switch back to Arabic if needed.",
+      });
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
       setSelectedReciter(savedReciter);
     }
     
     resetAudio();
-    toast.info("Language changed", {
-      description: "The audio will restart with the new language.",
-    });
   };
 
   return (
@@ -175,6 +181,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         src={getAudioUrl(verses[currentVerseIndex]?.number)}
         onEnded={playNextVerse}
         preload="auto"
+        crossOrigin="anonymous"
       />
     </div>
   );
