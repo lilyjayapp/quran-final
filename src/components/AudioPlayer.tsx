@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { reciters } from "@/utils/reciters";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useToast } from "@/components/ui/use-toast";
 import AudioControls from "./AudioControls";
 
 interface AudioPlayerProps {
@@ -31,6 +32,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     localStorage.getItem("selectedReciter") || reciters[0].identifier
   );
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const {
     isPlaying,
@@ -40,7 +42,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     togglePlay,
     resetAudio,
     playNextVerse,
-  } = useAudioPlayer({ verses, onVerseChange });
+  } = useAudioPlayer({ 
+    verses,
+    onVerseChange,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Audio Error",
+        description: "Failed to load audio. Please try a different reciter or check your connection.",
+      });
+    }
+  });
 
   const navigateToSurah = (direction: "next" | "previous") => {
     const nextSurahNumber =
@@ -57,6 +69,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     return recitationLanguage === "arabic"
       ? `${baseUrl}${selectedReciter}/${verseNumber}.mp3`
       : `${baseUrl}en.walk/${verseNumber}.mp3`;
+  };
+
+  const handleReciterChange = (value: string) => {
+    setSelectedReciter(value);
+    localStorage.setItem("selectedReciter", value);
+    resetAudio();
   };
 
   return (
@@ -84,6 +102,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <SelectContent>
               <SelectItem value="arabic">Arabic</SelectItem>
               <SelectItem value="english">English</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedReciter}
+            onValueChange={handleReciterChange}
+            disabled={isLoading || recitationLanguage !== "arabic"}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select reciter" />
+            </SelectTrigger>
+            <SelectContent>
+              {reciters.map((reciter) => (
+                <SelectItem key={reciter.identifier} value={reciter.identifier}>
+                  {reciter.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
