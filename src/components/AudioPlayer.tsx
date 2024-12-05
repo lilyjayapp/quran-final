@@ -63,16 +63,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const getAudioUrl = (verseNumber: number) => {
     if (recitationLanguage === "english") {
-      // English audio files have a different URL structure
-      return `https://audio.islamicstudies.info/audio/english/AbdulBaset_AbdusSamad_192kbps/${verseNumber}.mp3`;
+      // Updated English audio URL structure
+      return `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
     }
     
     const reciter = selectedReciter;
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
     const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
     console.log("Generated audio URL:", url);
-    console.log("Using reciter:", reciter);
-    console.log("Current language:", recitationLanguage);
     return url;
   };
 
