@@ -64,6 +64,20 @@ export const useSurahDetail = (surahNumber: number) => {
         console.log("Arabic Data:", arabicData);
         console.log("Translation Data:", translationData);
 
+        if (arabicData.data.ayahs.length !== translationData.data.ayahs.length) {
+          console.error("Mismatch between Arabic and translation Ayahs");
+          return {
+            ...arabicData.data,
+            verses: arabicData.data.ayahs.map((verse: any) => ({
+              number: verse.number,
+              text: verse.text,
+              numberInSurah: verse.numberInSurah,
+              translation: "Translation unavailable",
+              audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
+            })),
+          };
+        }
+
         const verses = arabicData.data.ayahs.map((verse: any, index: number) => ({
           number: verse.number,
           text: verse.text,
