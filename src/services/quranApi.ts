@@ -40,24 +40,56 @@ export const useSurahDetail = (surahNumber: number) => {
   return useQuery({
     queryKey: ["surah", surahNumber, selectedLanguage],
     queryFn: async () => {
-      const [arabicResponse, translationResponse] = await Promise.all([
-        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`),
-        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/${selectedLanguage}`),
-      ]);
+      console.log(`Fetching surah ${surahNumber} with translation ${selectedLanguage}`);
       
-      const arabicData = await arabicResponse.json();
-      const translationData = await translationResponse.json();
-      
-      const verses = arabicData.data.ayahs.map((verse: any, index: number) => ({
-        ...verse,
-        translation: translationData.data.ayahs[index].text,
-        audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
-      }));
-      
-      return {
-        ...arabicData.data,
-        verses,
-      };
+      try {
+        const [arabicResponse, translationResponse] = await Promise.all([
+          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`),
+          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/${selectedLanguage}`),
+        ]);
+
+        if (!arabicResponse.ok) {
+          throw new Error(`Arabic API error: ${arabicResponse.status}`);
+        }
+        if (!translationResponse.ok) {
+          throw new Error(`Translation API error: ${translationResponse.status}`);
+        }
+
+        const arabicData = await arabicResponse.json();
+        const translationData = await translationResponse.json();
+
+        console.log("Arabic Response Status:", arabicResponse.status);
+        console.log("Translation Response Status:", translationResponse.status);
+        console.log("Arabic Data:", arabicData);
+        console.log("Translation Data:", translationData);
+
+        if (!arabicData.data || !arabicData.data.ayahs) {
+          throw new Error('Invalid Arabic data structure');
+        }
+        if (!translationData.data || !translationData.data.ayahs) {
+          throw new Error('Invalid translation data structure');
+        }
+
+        const verses = arabicData.data.ayahs.map((verse: any, index: number) => {
+          const translation = translationData.data.ayahs[index]?.text || "Translation unavailable";
+          return {
+            number: verse.number,
+            text: verse.text,
+            numberInSurah: verse.numberInSurah,
+            translation: translation,
+            audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
+          };
+        });
+
+        return {
+          ...arabicData.data,
+          verses,
+        } as SurahDetail;
+      } catch (error) {
+        console.error('Error fetching surah:', error);
+        throw error;
+      }
     },
+    retry: 1,
   });
 };
