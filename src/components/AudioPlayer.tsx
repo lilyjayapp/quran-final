@@ -1,8 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Play, Pause, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import { Button } from "./ui/button";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "./ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -11,6 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { reciters } from "@/utils/reciters";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import AudioControls from "./AudioControls";
 
 interface AudioPlayerProps {
   verses: {
@@ -22,127 +21,31 @@ interface AudioPlayerProps {
   onVerseChange?: (verseNumber: number) => void;
 }
 
-const AudioPlayer: React.FC<AudioPlayerProps> = ({ 
-  verses, 
+const AudioPlayer: React.FC<AudioPlayerProps> = ({
+  verses,
   currentSurahNumber,
-  onVerseChange 
+  onVerseChange,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [recitationLanguage, setRecitationLanguage] = useState("arabic");
-  const [selectedReciter, setSelectedReciter] = useState(() => 
-    localStorage.getItem('selectedReciter') || reciters[0].identifier
+  const [selectedReciter, setSelectedReciter] = useState(() =>
+    localStorage.getItem("selectedReciter") || reciters[0].identifier
   );
-  const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const playNextVerse = () => {
-    if (currentVerseIndex < verses.length - 1) {
-      const nextIndex = currentVerseIndex + 1;
-      setCurrentVerseIndex(nextIndex);
-      if (onVerseChange) {
-        onVerseChange(verses[nextIndex].number);
-      }
-    } else {
-      setIsPlaying(false);
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
-    }
-  };
+  const {
+    isPlaying,
+    isLoading,
+    currentVerseIndex,
+    audioRef,
+    togglePlay,
+    resetAudio,
+    playNextVerse,
+  } = useAudioPlayer({ verses, onVerseChange });
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const navigateToSurah = (direction: "next" | "previous") => {
+    const nextSurahNumber =
+      direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
 
-    const handleCanPlay = () => {
-      setIsLoading(false);
-      if (isPlaying) {
-        audio.play().catch((error) => {
-          console.error("Audio playback error:", error);
-          setIsPlaying(false);
-          setIsLoading(false);
-          toast({
-            title: "Playback Error",
-            description: "There was an error playing the audio. Please try again.",
-            variant: "destructive",
-          });
-        });
-      }
-    };
-
-    const handleLoadStart = () => {
-      setIsLoading(true);
-    };
-
-    const handleError = () => {
-      setIsLoading(false);
-      setIsPlaying(false);
-      toast({
-        title: "Audio Error",
-        description: "Failed to load audio. Please try again.",
-        variant: "destructive",
-      });
-    };
-
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('error', handleError);
-    };
-  }, [isPlaying, toast]);
-
-  const togglePlay = async () => {
-    if (!audioRef.current) return;
-
-    try {
-      if (!isPlaying) {
-        setIsLoading(true);
-        await audioRef.current.load();
-      } else {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
-      setIsPlaying(!isPlaying);
-      if (onVerseChange) {
-        onVerseChange(verses[currentVerseIndex].number);
-      }
-    } catch (error) {
-      console.error("Toggle play error:", error);
-      setIsLoading(false);
-      setIsPlaying(false);
-      toast({
-        title: "Playback Error",
-        description: "There was an error controlling the audio. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const resetAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
-    }
-  };
-
-  const navigateToSurah = (direction: 'next' | 'previous') => {
-    const nextSurahNumber = direction === 'next' 
-      ? currentSurahNumber + 1 
-      : currentSurahNumber - 1;
-    
     if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
       resetAudio();
       navigate(`/surah/${nextSurahNumber}`);
@@ -151,7 +54,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const getAudioUrl = (verseNumber: number) => {
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-    return recitationLanguage === "arabic" 
+    return recitationLanguage === "arabic"
       ? `${baseUrl}${selectedReciter}/${verseNumber}.mp3`
       : `${baseUrl}en.walk/${verseNumber}.mp3`;
   };
@@ -160,44 +63,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigateToSurah('previous')}
-            disabled={currentSurahNumber <= 1 || isLoading}
-          >
-            <SkipBack size={20} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={togglePlay}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900" />
-            ) : isPlaying ? (
-              <Pause size={20} />
-            ) : (
-              <Play size={20} />
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={resetAudio}
-            disabled={isLoading}
-          >
-            <RotateCcw size={20} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigateToSurah('next')}
-            disabled={currentSurahNumber >= 114 || isLoading}
-          >
-            <SkipForward size={20} />
-          </Button>
+          <AudioControls
+            isPlaying={isPlaying}
+            isLoading={isLoading}
+            onPlayPause={togglePlay}
+            onReset={resetAudio}
+            onPrevious={() => navigateToSurah("previous")}
+            onNext={() => navigateToSurah("next")}
+            disablePrevious={currentSurahNumber <= 1}
+            disableNext={currentSurahNumber >= 114}
+          />
           <Select
             value={recitationLanguage}
             onValueChange={setRecitationLanguage}
