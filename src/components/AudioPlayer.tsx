@@ -29,7 +29,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 }) => {
   const [recitationLanguage, setRecitationLanguage] = useState("arabic");
   const [selectedReciter, setSelectedReciter] = useState(() =>
-    localStorage.getItem("selectedReciter") || reciters[0].identifier
+    localStorage.getItem("selectedReciter") || "ar.alafasy"
   );
   const navigate = useNavigate();
 
@@ -62,7 +62,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const getAudioUrl = (verseNumber: number) => {
-    // Fix: Use the correct reciter based on the selected language
+    // Always use the selected reciter for Arabic, and en.walk for English
     const reciter = recitationLanguage === "arabic" ? selectedReciter : "en.walk";
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
     const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
@@ -71,6 +71,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const handleReciterChange = (value: string) => {
+    if (recitationLanguage !== "arabic") {
+      toast.error("Reciter selection is only available for Arabic recitation");
+      return;
+    }
     console.log("Changing reciter to:", value);
     setSelectedReciter(value);
     localStorage.setItem("selectedReciter", value);
@@ -82,6 +86,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const handleLanguageChange = (value: string) => {
     setRecitationLanguage(value);
+    // Reset reciter to default when switching to English
+    if (value === "english") {
+      setSelectedReciter("en.walk");
+    } else {
+      // Restore previous Arabic reciter or use default
+      setSelectedReciter(localStorage.getItem("selectedReciter") || "ar.alafasy");
+    }
     resetAudio();
     toast.info("Language changed", {
       description: "The audio will restart with the new language.",
