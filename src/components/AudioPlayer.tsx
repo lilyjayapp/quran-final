@@ -62,10 +62,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const getAudioUrl = (verseNumber: number) => {
+    // Fix: Use the correct reciter based on the selected language
+    const reciter = recitationLanguage === "arabic" ? selectedReciter : "en.walk";
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-    const url = recitationLanguage === "arabic"
-      ? `${baseUrl}${selectedReciter}/${verseNumber}.mp3`
-      : `${baseUrl}en.walk/${verseNumber}.mp3`;
+    const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
     console.log("Generated audio URL:", url);
     return url;
   };
@@ -77,6 +77,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     resetAudio();
     toast.info("Reciter changed", {
       description: "The audio will restart with the new reciter.",
+    });
+  };
+
+  const handleLanguageChange = (value: string) => {
+    setRecitationLanguage(value);
+    resetAudio();
+    toast.info("Language changed", {
+      description: "The audio will restart with the new language.",
     });
   };
 
@@ -97,7 +105,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           />
           <Select
             value={recitationLanguage}
-            onValueChange={setRecitationLanguage}
+            onValueChange={handleLanguageChange}
             disabled={isLoading}
           >
             <SelectTrigger className="w-[180px]">
