@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 interface UseAudioPlayerProps {
   verses: {
@@ -12,9 +13,93 @@ interface UseAudioPlayerProps {
 
 export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleAudioError = (error: any) => {
+    console.error("Audio Error:", error);
+    setIsLoading(false);
+    setIsPlaying(false);
+
+    // Log debugging information
+    if (audioRef.current) {
+      console.log("Current audio URL:", audioRef.current.src);
+      console.log("Audio ready state:", audioRef.current.readyState);
+      console.log("Network state:", audioRef.current.networkState);
+    }
+
+    let errorMessage = "Failed to load audio. Please try a different reciter or check your connection.";
+    
+    if (error instanceof Error) {
+      if (error.name === "NotSupportedError") {
+        errorMessage = "This audio format is not supported by your browser.";
+      } else if (error.name === "NotAllowedError") {
+        errorMessage = "Autoplay is not allowed. Please click play to start the audio.";
+      }
+    }
+
+    toast.error(errorMessage, {
+      description: "You can try selecting a different reciter or refreshing the page.",
+      action: {
+        label: "Retry",
+        onClick: () => retryPlayback(),
+      },
+    });
+
+    if (onError) onError();
+  };
+
+  const retryPlayback = async () => {
+    if (!audioRef.current) return;
+    
+    try {
+      setIsLoading(true);
+      await audioRef.current.load();
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch (error) {
+      handleAudioError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const togglePlay = async () => {
+    if (!audioRef.current) return;
+
+    try {
+      if (!isPlaying) {
+        setIsLoading(true);
+        await audioRef.current.load();
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      
+      if (onVerseChange) {
+        onVerseChange(verses[currentVerseIndex].number);
+      }
+    } catch (error) {
+      handleAudioError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      setCurrentVerseIndex(0);
+      if (onVerseChange) {
+        onVerseChange(verses[0].number);
+      }
+    }
+  };
 
   const playNextVerse = () => {
     if (currentVerseIndex < verses.length - 1) {
@@ -32,14 +117,6 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
     }
   };
 
-  const handleAudioError = () => {
-    setIsLoading(false);
-    setIsPlaying(false);
-    if (onError) {
-      onError();
-    }
-  };
-
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -47,9 +124,7 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
     const handleCanPlay = () => {
       setIsLoading(false);
       if (isPlaying) {
-        audio.play().catch(() => {
-          handleAudioError();
-        });
+        audio.play().catch(handleAudioError);
       }
     };
 
@@ -57,48 +132,23 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
       setIsLoading(true);
     };
 
+    const handleEnded = () => {
+      setIsPlaying(false);
+      playNextVerse();
+    };
+
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('error', handleAudioError);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', (e) => handleAudioError(e.error));
 
     return () => {
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('error', handleAudioError);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', (e) => handleAudioError(e.error));
     };
-  }, [isPlaying, onError]);
-
-  const togglePlay = async () => {
-    if (!audioRef.current) return;
-
-    try {
-      if (!isPlaying) {
-        setIsLoading(true);
-        await audioRef.current.load();
-      } else {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
-      setIsPlaying(!isPlaying);
-      if (onVerseChange) {
-        onVerseChange(verses[currentVerseIndex].number);
-      }
-    } catch (error) {
-      handleAudioError();
-    }
-  };
-
-  const resetAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
-    }
-  };
+  }, [isPlaying, verses, currentVerseIndex]);
 
   return {
     isPlaying,
@@ -108,6 +158,6 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
     togglePlay,
     resetAudio,
     playNextVerse,
-    setCurrentVerseIndex,
+    retryPlayback,
   };
 };

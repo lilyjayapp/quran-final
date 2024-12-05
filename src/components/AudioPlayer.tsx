@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { reciters } from "@/utils/reciters";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import AudioControls from "./AudioControls";
 
 interface AudioPlayerProps {
@@ -32,7 +32,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     localStorage.getItem("selectedReciter") || reciters[0].identifier
   );
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const {
     isPlaying,
@@ -42,15 +41,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     togglePlay,
     resetAudio,
     playNextVerse,
+    retryPlayback,
   } = useAudioPlayer({ 
     verses,
     onVerseChange,
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Audio Error",
-        description: "Failed to load audio. Please try a different reciter or check your connection.",
-      });
+      console.log("Current reciter:", selectedReciter);
+      console.log("Current language:", recitationLanguage);
     }
   });
 
@@ -66,15 +63,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const getAudioUrl = (verseNumber: number) => {
     const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-    return recitationLanguage === "arabic"
+    const url = recitationLanguage === "arabic"
       ? `${baseUrl}${selectedReciter}/${verseNumber}.mp3`
       : `${baseUrl}en.walk/${verseNumber}.mp3`;
+    console.log("Generated audio URL:", url);
+    return url;
   };
 
   const handleReciterChange = (value: string) => {
+    console.log("Changing reciter to:", value);
     setSelectedReciter(value);
     localStorage.setItem("selectedReciter", value);
     resetAudio();
+    toast.info("Reciter changed", {
+      description: "The audio will restart with the new reciter.",
+    });
   };
 
   return (
@@ -88,6 +91,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             onReset={resetAudio}
             onPrevious={() => navigateToSurah("previous")}
             onNext={() => navigateToSurah("next")}
+            onRetry={retryPlayback}
             disablePrevious={currentSurahNumber <= 1}
             disableNext={currentSurahNumber >= 114}
           />
