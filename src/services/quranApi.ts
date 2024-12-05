@@ -63,20 +63,36 @@ export const useSurahDetail = (surahNumber: number) => {
         const arabicData = await arabicResponse.json();
         const translationData = await translationResponse.json();
 
-        // Log response data for debugging
-        console.log("Arabic Data:", arabicData);
-        console.log("Translation Data:", translationData);
-        console.log("Translation Language:", selectedLanguage);
-        console.log("Number of Arabic verses:", arabicData.data.ayahs.length);
-        console.log("Number of Translation verses:", translationData.data.ayahs.length);
+        // Enhanced debugging logs
+        console.log("Arabic Data Structure:", {
+          surahNumber: arabicData.data.number,
+          numberOfVerses: arabicData.data.numberOfAyahs,
+          firstVerse: arabicData.data.ayahs?.[0],
+          lastVerse: arabicData.data.ayahs?.[arabicData.data.ayahs.length - 1]
+        });
 
-        // Check for data validity and length mismatch
+        console.log("Translation Data Structure:", {
+          surahNumber: translationData.data.number,
+          numberOfVerses: translationData.data.numberOfAyahs,
+          firstVerse: translationData.data.ayahs?.[0],
+          lastVerse: translationData.data.ayahs?.[translationData.data.ayahs.length - 1]
+        });
+
+        // Validate data structure
         if (!arabicData.data?.ayahs || !translationData.data?.ayahs) {
+          console.error("Invalid API response structure:", {
+            hasArabicAyahs: !!arabicData.data?.ayahs,
+            hasTranslationAyahs: !!translationData.data?.ayahs
+          });
           throw new Error("Invalid API response structure");
         }
 
+        // Check for length mismatch
         if (arabicData.data.ayahs.length !== translationData.data.ayahs.length) {
-          console.error("Mismatch between Arabic and translation Ayahs");
+          console.error("Verse count mismatch:", {
+            arabicVerses: arabicData.data.ayahs.length,
+            translationVerses: translationData.data.ayahs.length
+          });
           return {
             ...arabicData.data,
             verses: arabicData.data.ayahs.map((verse: any) => ({
@@ -92,6 +108,9 @@ export const useSurahDetail = (surahNumber: number) => {
         // Map verses with translations
         const verses = arabicData.data.ayahs.map((verse: any, index: number) => {
           const translation = translationData.data.ayahs[index]?.text;
+          if (!translation) {
+            console.warn(`Missing translation for verse ${verse.number}`);
+          }
           return {
             number: verse.number,
             text: verse.text,
