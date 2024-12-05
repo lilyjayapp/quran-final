@@ -35,12 +35,14 @@ export const useSurahs = () => {
 };
 
 export const useSurahDetail = (surahNumber: number) => {
+  const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en.asad';
+  
   return useQuery({
-    queryKey: ["surah", surahNumber],
+    queryKey: ["surah", surahNumber, selectedLanguage],
     queryFn: async () => {
       const [arabicResponse, translationResponse] = await Promise.all([
         fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}`),
-        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/en.asad`),
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/${selectedLanguage}`),
       ]);
       
       const arabicData = await arabicResponse.json();
