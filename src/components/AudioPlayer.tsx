@@ -33,6 +33,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [selectedReciter, setSelectedReciter] = useState(() => 
     localStorage.getItem('selectedReciter') || reciters[0].identifier
   );
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -54,40 +55,69 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   useEffect(() => {
-    if (audioRef.current) {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
       if (isPlaying) {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch((error) => {
-            console.error("Audio playback error:", error);
-            setIsPlaying(false);
-            toast({
-              title: "Playback Error",
-              description: "There was an error playing the audio. Please try again.",
-              variant: "destructive",
-            });
+        audio.play().catch((error) => {
+          console.error("Audio playback error:", error);
+          setIsPlaying(false);
+          setIsLoading(false);
+          toast({
+            title: "Playback Error",
+            description: "There was an error playing the audio. Please try again.",
+            variant: "destructive",
           });
-        }
-      } else {
-        audioRef.current.pause();
+        });
       }
-    }
-  }, [isPlaying, currentVerseIndex, toast]);
+    };
+
+    const handleLoadStart = () => {
+      setIsLoading(true);
+    };
+
+    const handleError = () => {
+      setIsLoading(false);
+      setIsPlaying(false);
+      toast({
+        title: "Audio Error",
+        description: "Failed to load audio. Please try again.",
+        variant: "destructive",
+      });
+    };
+
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('error', handleError);
+    };
+  }, [isPlaying, toast]);
 
   const togglePlay = async () => {
+    if (!audioRef.current) return;
+
     try {
-      if (audioRef.current) {
-        if (!isPlaying) {
-          // Ensure audio is loaded before attempting to play
-          await audioRef.current.load();
-        }
-        setIsPlaying(!isPlaying);
-        if (onVerseChange) {
-          onVerseChange(verses[currentVerseIndex].number);
-        }
+      if (!isPlaying) {
+        setIsLoading(true);
+        await audioRef.current.load();
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+      setIsPlaying(!isPlaying);
+      if (onVerseChange) {
+        onVerseChange(verses[currentVerseIndex].number);
       }
     } catch (error) {
       console.error("Toggle play error:", error);
+      setIsLoading(false);
+      setIsPlaying(false);
       toast({
         title: "Playback Error",
         description: "There was an error controlling the audio. Please try again.",
@@ -134,7 +164,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             variant="outline"
             size="icon"
             onClick={() => navigateToSurah('previous')}
-            disabled={currentSurahNumber <= 1}
+            disabled={currentSurahNumber <= 1 || isLoading}
           >
             <SkipBack size={20} />
           </Button>
@@ -142,13 +172,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             variant="outline"
             size="icon"
             onClick={togglePlay}
+            disabled={isLoading}
           >
-            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+            {isLoading ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900" />
+            ) : isPlaying ? (
+              <Pause size={20} />
+            ) : (
+              <Play size={20} />
+            )}
           </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={resetAudio}
+            disabled={isLoading}
           >
             <RotateCcw size={20} />
           </Button>
@@ -156,13 +194,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             variant="outline"
             size="icon"
             onClick={() => navigateToSurah('next')}
-            disabled={currentSurahNumber >= 114}
+            disabled={currentSurahNumber >= 114 || isLoading}
           >
             <SkipForward size={20} />
           </Button>
           <Select
             value={recitationLanguage}
             onValueChange={setRecitationLanguage}
+            disabled={isLoading}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select language" />
@@ -182,7 +221,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         src={getAudioUrl(verses[currentVerseIndex]?.number)}
         onEnded={playNextVerse}
         preload="auto"
-        className="hidden"
       />
     </div>
   );
