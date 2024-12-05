@@ -13,6 +13,7 @@ interface Verse {
   text: string;
   numberInSurah: number;
   audio: string;
+  translation: string;  // Added this property
 }
 
 interface SurahDetail {
