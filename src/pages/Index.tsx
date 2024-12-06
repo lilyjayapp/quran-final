@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { reciters } from "../utils/reciters";
 import { languages } from "../utils/languages";
 import { useToast } from "../components/ui/use-toast";
+import AudioControls from "../components/AudioControls";
 
 const Index = () => {
   const { data: surahs, isLoading, error } = useSurahs();
@@ -13,7 +14,7 @@ const Index = () => {
     localStorage.getItem('selectedReciter') || reciters[0].identifier
   );
   const [selectedLanguage, setSelectedLanguage] = React.useState(() => 
-    localStorage.getItem('selectedLanguage') || languages[1].code // Default to English
+    localStorage.getItem('selectedLanguage') || languages[1].code
   );
 
   const handleReciterChange = (value: string) => {
@@ -79,7 +80,22 @@ const Index = () => {
             ))}
           </SelectContent>
         </Select>
+
+        <div className="flex justify-center mt-4">
+          <AudioControls
+            isPlaying={false}
+            isLoading={false}
+            onPlayPause={() => {}}
+            onReset={() => {}}
+            onPrevious={() => {}}
+            onNext={() => {}}
+            onRetry={() => {}}
+            disablePrevious={true}
+            disableNext={true}
+          />
+        </div>
       </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {surahs?.map((surah) => (
           <SurahCard key={surah.number} {...surah} />
