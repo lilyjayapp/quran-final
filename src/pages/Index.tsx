@@ -51,7 +51,7 @@ const Index = () => {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-24">
       <h1 className="text-4xl font-bold text-center mb-8">The Noble Quran</h1>
       <div className="max-w-md mx-auto mb-8 space-y-4">
         <Select value={selectedReciter} onValueChange={handleReciterChange}>
