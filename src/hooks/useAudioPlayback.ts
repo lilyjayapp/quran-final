@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { isMobileDevice, isIOSDevice, isAndroidDevice } from "@/utils/deviceUtils";
 
 interface UseAudioPlaybackProps {
   verses: {
@@ -15,29 +16,36 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const retryCount = useRef(0);
 
   const handleAudioError = (error: any) => {
     console.error("Audio Error:", error);
     setIsLoading(false);
-    setIsPlaying(false);
-
-    if (audioRef.current) {
-      console.log("Current audio URL:", audioRef.current.src);
-      console.log("Audio ready state:", audioRef.current.readyState);
-      console.log("Network state:", audioRef.current.networkState);
-    }
-
-    let errorMessage = "Failed to load audio. Please try a different reciter or check your connection.";
     
-    if (error instanceof Error) {
-      if (error.name === "NotSupportedError") {
-        errorMessage = "This audio format is not supported by your browser.";
-      } else if (error.name === "NotAllowedError") {
-        errorMessage = "Autoplay is not allowed. Please click play to start the audio.";
-      }
+    // Don't show error toast for user interaction errors on mobile
+    if (error instanceof Error && error.name === "NotAllowedError" && isMobileDevice()) {
+      console.log("Suppressing user interaction error on mobile");
+      return;
     }
 
-    toast.error(errorMessage);
+    // For iOS devices, retry playback a few times before showing error
+    if (isIOSDevice() && retryCount.current < 3) {
+      retryCount.current++;
+      console.log(`Retrying playback on iOS (attempt ${retryCount.current})`);
+      setTimeout(() => retryPlayback(), 500);
+      return;
+    }
+
+    // Reset retry count
+    retryCount.current = 0;
+    
+    // Only show error toast if we're not on Android (to reduce noise)
+    if (!isAndroidDevice()) {
+      toast.error("Audio playback error", {
+        description: "Please try again or select a different reciter.",
+      });
+    }
+    
     if (onError) onError();
   };
 
@@ -46,6 +54,9 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
     
     try {
       setIsLoading(true);
+      if (isIOSDevice()) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
       await audioRef.current.load();
       await audioRef.current.play();
       setIsPlaying(true);
@@ -57,26 +68,25 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
   };
 
   const togglePlay = async () => {
-    console.log("togglePlay called");
-    if (!audioRef.current) {
-      console.log("No audio reference");
-      return;
-    }
+    if (!audioRef.current) return;
 
     try {
       if (!isPlaying) {
-        console.log("Starting playback");
         setIsLoading(true);
-        await audioRef.current.load();
+        if (isIOSDevice()) {
+          // For iOS, we need to reset and reload the audio
+          audioRef.current.currentTime = 0;
+          await audioRef.current.load();
+          // Small delay to ensure audio is loaded
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
         await audioRef.current.play();
         setIsPlaying(true);
       } else {
-        console.log("Pausing playback");
         audioRef.current.pause();
         setIsPlaying(false);
       }
     } catch (error) {
-      console.error("Error in togglePlay:", error);
       handleAudioError(error);
     } finally {
       setIsLoading(false);
@@ -84,11 +94,11 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
   };
 
   const resetAudio = () => {
-    console.log("Resetting audio");
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
+      retryCount.current = 0;
     }
   };
 
