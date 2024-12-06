@@ -18,7 +18,7 @@ const AudioSelectors = ({
   isLoading
 }: AudioSelectorsProps) => {
   return (
-    <div className="flex items-center space-x-2 min-w-[360px]">
+    <div className="flex items-center justify-center gap-4 w-full px-4 sm:px-0 sm:w-auto">
       <AudioLanguageSelect
         value={recitationLanguage}
         onChange={onLanguageChange}

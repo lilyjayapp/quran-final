@@ -24,7 +24,7 @@ const AudioLanguageSelect = ({
       onValueChange={onChange}
       disabled={disabled}
     >
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-[140px] sm:w-[160px]">
         <SelectValue placeholder="Select language" />
       </SelectTrigger>
       <SelectContent>
