@@ -1,4 +1,5 @@
 import { speak, stopSpeaking } from "@/utils/ttsUtils";
+import { toast } from "sonner";
 
 interface UseTextToSpeechProps {
   verses: {
@@ -53,7 +54,13 @@ export const useTextToSpeech = ({
       }
     };
 
-    speakNextVerse();
+    try {
+      speakNextVerse();
+    } catch (error) {
+      console.error("Text-to-speech error:", error);
+      toast.error("Error playing translation. Please try a different language.");
+      setIsPlaying(false);
+    }
   };
 
   return {
