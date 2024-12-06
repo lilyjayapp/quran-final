@@ -27,39 +27,22 @@ export const useAudioQueue = ({
 
     try {
       setIsLoading(true);
-      console.log('Starting playback:', {
-        index: currentIndex,
-        verseNumber: verses[currentIndex].number,
-        language: recitationLanguage,
-        audioSrc: verses[currentIndex].audio
-      });
       
       if (onVerseChange) {
         onVerseChange(verses[currentIndex].number);
       }
 
       if (recitationLanguage === "ar.alafasy") {
-        if (!verses[currentIndex].audio) {
-          console.error('No audio URL available');
-          return;
-        }
-        
-        audioRef.current.src = verses[currentIndex].audio;
-        audioRef.current.load();
+        audioRef.current.src = verses[currentIndex].audio || '';
         await audioRef.current.play();
-        console.log('Audio started playing');
       } else {
-        await new Promise<void>((resolve) => {
-          speak(
-            verses[currentIndex].translation,
-            () => {
-              console.log('TTS completed');
-              resolve();
-            },
-            recitationLanguage
-          );
-        });
-        handleVerseComplete();
+        speak(
+          verses[currentIndex].translation,
+          () => {
+            handleVerseComplete();
+          },
+          recitationLanguage
+        );
       }
     } catch (error) {
       console.error('Playback error:', error);
@@ -71,16 +54,9 @@ export const useAudioQueue = ({
   };
 
   const handleVerseComplete = () => {
-    console.log('Completing verse:', {
-      currentIndex,
-      totalVerses: verses.length,
-      nextIndex: currentIndex + 1
-    });
-    
     if (currentIndex < verses.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
-      console.log('Reached end of surah');
       setIsPlaying(false);
       setCurrentIndex(0);
       if (onVerseChange) {
@@ -91,7 +67,6 @@ export const useAudioQueue = ({
 
   useEffect(() => {
     if (isPlaying) {
-      console.log('Effect triggered - playing verse:', currentIndex);
       playCurrentVerse();
     }
   }, [currentIndex, isPlaying]);
@@ -100,7 +75,6 @@ export const useAudioQueue = ({
     const audio = audioRef.current;
     
     const handleEnded = () => {
-      console.log('Audio ended naturally');
       handleVerseComplete();
     };
 
@@ -115,7 +89,6 @@ export const useAudioQueue = ({
   }, []);
 
   const togglePlay = () => {
-    console.log('Toggling playback:', !isPlaying);
     if (!isPlaying) {
       setIsPlaying(true);
     } else {
