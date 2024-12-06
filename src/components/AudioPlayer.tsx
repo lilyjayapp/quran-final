@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
+import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import AudioControls from "./AudioControls";
 import AudioLanguageSelect from "./audio/AudioLanguageSelect";
 import ReciterSelect from "./audio/ReciterSelect";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import { getAudioUrl } from "@/utils/audioUtils";
-import { speak, stopSpeaking } from "@/utils/ttsUtils";
+import { stopSpeaking } from "@/utils/ttsUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -52,36 +53,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   });
 
-  const playEnglishTranslation = async () => {
-    if (!verses || verses.length === 0) return;
-    
-    const translations = verses.map(verse => verse.translation);
-    let currentIndex = currentVerseIndex;
+  const { playTranslations, stopTranslations } = useTextToSpeech({
+    verses,
+    isPlaying,
+    currentVerseIndex,
+    onVerseChange,
+    setIsPlaying
+  });
 
-    const speakNextVerse = () => {
-      if (!isPlaying) return;
-      
-      if (currentIndex < translations.length) {
-        if (onVerseChange) {
-          onVerseChange(verses[currentIndex].number);
-        }
-        
-        speak(translations[currentIndex], () => {
-          currentIndex++;
-          if (currentIndex < translations.length && isPlaying) {
-            speakNextVerse();
-          } else if (currentIndex >= translations.length) {
-            setIsPlaying(false);
-            currentIndex = 0;
-            if (onVerseChange) {
-              onVerseChange(verses[0].number);
-            }
-          }
-        });
+  const handlePlayPause = () => {
+    if (recitationLanguage === "english") {
+      if (isPlaying) {
+        stopTranslations();
+      } else {
+        playTranslations();
       }
-    };
-
-    speakNextVerse();
+    }
+    togglePlay();
   };
 
   const handleLanguageChange = (value: string) => {
@@ -98,7 +86,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       toast.info("English audio using text-to-speech");
       setSelectedReciter("ar.alafasy");
       if (isPlaying) {
-        playEnglishTranslation();
+        playTranslations();
       }
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
@@ -124,7 +112,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      playEnglishTranslation();
+      playTranslations();
     }
   }, [currentVerseIndex, recitationLanguage, isPlaying]);
 
@@ -145,16 +133,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <AudioControls
             isPlaying={isPlaying}
             isLoading={isLoading}
-            onPlayPause={() => {
-              if (recitationLanguage === "english") {
-                if (isPlaying) {
-                  stopSpeaking();
-                } else {
-                  playEnglishTranslation();
-                }
-              }
-              togglePlay();
-            }}
+            onPlayPause={handlePlayPause}
             onReset={() => {
               resetAudio();
               stopSpeaking();
@@ -163,7 +142,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             onNext={() => navigateToSurah("next")}
             onRetry={() => {
               if (recitationLanguage === "english") {
-                playEnglishTranslation();
+                playTranslations();
               } else {
                 retryPlayback();
               }
