@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
@@ -6,6 +6,7 @@ import AudioControls from "./AudioControls";
 import AudioLanguageSelect from "./audio/AudioLanguageSelect";
 import ReciterSelect from "./audio/ReciterSelect";
 import { getAudioUrl, handleAudioError } from "@/utils/audioUtils";
+import { speak, stopSpeaking } from "@/utils/ttsUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -80,12 +81,20 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   });
 
+  // Stop TTS when component unmounts or language changes
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, [recitationLanguage]);
+
   const navigateToSurah = (direction: "next" | "previous") => {
     const nextSurahNumber =
       direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
 
     if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
       resetAudio();
+      stopSpeaking();
       navigate(`/surah/${nextSurahNumber}`);
     }
   };
@@ -99,6 +108,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setSelectedReciter(value);
     localStorage.setItem("selectedReciter", value);
     resetAudio();
+    stopSpeaking();
     toast.info("Reciter changed", {
       description: "The audio will restart with the new reciter.",
     });
@@ -108,19 +118,32 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     console.log("Changing language to:", value);
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
+    stopSpeaking();
     
     if (value === "english") {
-      toast.info("English audio not available", {
-        description: "English translation audio is not currently available. Playing Arabic recitation with English text translation.",
+      toast.info("English audio using text-to-speech", {
+        description: "Playing English translation using text-to-speech technology.",
       });
       setSelectedReciter("ar.alafasy");
+      // Start TTS for current verse
+      if (verses[currentVerseIndex]?.translation) {
+        speak(verses[currentVerseIndex].translation, playNextVerse);
+      }
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
       setSelectedReciter(savedReciter);
+      resetAudio();
     }
-    
-    resetAudio();
   };
+
+  // Handle TTS for English mode
+  useEffect(() => {
+    if (recitationLanguage === "english" && isPlaying) {
+      if (verses[currentVerseIndex]?.translation) {
+        speak(verses[currentVerseIndex].translation, playNextVerse);
+      }
+    }
+  }, [currentVerseIndex, recitationLanguage, isPlaying]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
@@ -129,11 +152,34 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <AudioControls
             isPlaying={isPlaying}
             isLoading={isLoading}
-            onPlayPause={togglePlay}
-            onReset={resetAudio}
-            onPrevious={() => navigateToSurah("previous")}
-            onNext={() => navigateToSurah("next")}
-            onRetry={retryPlayback}
+            onPlayPause={() => {
+              if (recitationLanguage === "english") {
+                if (isPlaying) {
+                  stopSpeaking();
+                } else {
+                  speak(verses[currentVerseIndex].translation, playNextVerse);
+                }
+              }
+              togglePlay();
+            }}
+            onReset={() => {
+              resetAudio();
+              stopSpeaking();
+            }}
+            onPrevious={() => {
+              stopSpeaking();
+              navigateToSurah("previous");
+            }}
+            onNext={() => {
+              stopSpeaking();
+              navigateToSurah("next");
+            }}
+            onRetry={() => {
+              if (recitationLanguage === "english") {
+                speak(verses[currentVerseIndex].translation, playNextVerse);
+              }
+              retryPlayback();
+            }}
             disablePrevious={currentSurahNumber <= 1}
             disableNext={currentSurahNumber >= 114}
           />

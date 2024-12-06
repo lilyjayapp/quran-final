@@ -8,9 +8,9 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string, r
   console.log("Audio settings:", {
     language,
     reciter,
-    verseNumber
+    verseNumber,
+    url
   });
-  console.log("Generated audio URL:", url);
   
   return url;
 };
