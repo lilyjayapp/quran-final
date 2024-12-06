@@ -15,25 +15,23 @@ interface UseTextToSpeechProps {
 
 export const useTextToSpeech = ({
   verses,
-  isPlaying,
   currentVerseIndex,
   onVerseChange,
   setIsPlaying,
   language,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
-    console.log("Starting text-to-speech playback:", {
+    console.log("Starting translations playback:", {
       currentVerseIndex,
       totalVerses: verses.length,
-      language,
-      isPlaying
+      language
     });
 
     if (!verses || verses.length === 0) {
       console.error("No verses available for playback");
       return;
     }
-    
+
     const currentVerse = verses[currentVerseIndex];
     if (!currentVerse) {
       console.error("No verse found at index:", currentVerseIndex);
@@ -41,11 +39,11 @@ export const useTextToSpeech = ({
     }
 
     try {
-      if (onVerseChange) {
-        onVerseChange(currentVerse.number);
-      }
-      
       return new Promise<void>((resolve) => {
+        if (onVerseChange) {
+          onVerseChange(currentVerse.number);
+        }
+
         speak(currentVerse.translation, () => {
           console.log("Finished speaking verse:", currentVerse.number);
           if (currentVerseIndex < verses.length - 1) {
@@ -53,10 +51,11 @@ export const useTextToSpeech = ({
             if (onVerseChange) {
               onVerseChange(verses[currentVerseIndex + 1].number);
             }
+            resolve();
           } else {
             setIsPlaying(false);
+            resolve();
           }
-          resolve();
         }, language);
       });
     } catch (error) {

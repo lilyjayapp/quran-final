@@ -43,9 +43,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
   if (onEnd) {
     currentUtterance.onend = () => {
       console.log('Speech synthesis ended');
-      setTimeout(() => {
-        onEnd();
-      }, 500); // Add a small delay before triggering the next verse
+      onEnd();
     };
   }
 
