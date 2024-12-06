@@ -26,11 +26,17 @@ export const handleAudioError = (audioElement: HTMLAudioElement | null) => {
   console.log("Current audio URL:", audioElement.src);
   console.log("Audio ready state:", audioElement.readyState);
   console.log("Network state:", audioElement.networkState);
-  console.log("Error code:", audioElement.error?.code);
-  console.log("Error message:", audioElement.error?.message);
+  
+  // Log browser information for debugging
   console.log("Browser:", navigator.userAgent);
+  
+  // Log error details if available
+  if (audioElement.error) {
+    console.log("Error code:", audioElement.error.code);
+    console.log("Error message:", audioElement.error.message);
+  }
 
-  // Log the error object for debugging
+  // Log error object for debugging
   console.error("Audio Error:", {
     _type: audioElement.error?.constructor?.name || "undefined",
     value: audioElement.error || "undefined"

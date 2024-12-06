@@ -44,6 +44,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange,
     onError: () => {
       handleAudioError(audioRef.current);
+      
+      // Log current state for debugging
       console.log("- Current reciter:", selectedReciter);
       console.log("- Current language:", recitationLanguage);
       console.log("- Current verse number:", verses[currentVerseIndex]?.number);
