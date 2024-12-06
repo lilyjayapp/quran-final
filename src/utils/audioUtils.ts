@@ -1,12 +1,15 @@
 export const getAudioUrl = (verseNumber: number | undefined, language: string, reciter: string) => {
-  if (!verseNumber) return "";
+  if (!verseNumber) {
+    console.error("No verse number provided for audio URL");
+    return "";
+  }
   
-  // Use HTTPS for the CDN URL and add CORS proxy for production
+  // Use HTTPS for the CDN URL
   const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
   const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
   
   // Log audio settings and URL for debugging
-  console.log("Audio settings:", {
+  console.log("Audio URL generated:", {
     language,
     reciter,
     verseNumber,
@@ -19,23 +22,10 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string, r
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {
   if (!audioElement) return;
   
-  console.log("Audio Error Details:");
-  console.log("Current audio URL:", audioElement.src);
-  console.log("Audio ready state:", audioElement.readyState);
-  console.log("Network state:", audioElement.networkState);
-  
-  // Log browser information for debugging
-  console.log("Browser:", navigator.userAgent);
-  
-  // Log error details if available
-  if (audioElement.error) {
-    console.log("Error code:", audioElement.error.code);
-    console.log("Error message:", audioElement.error.message);
-  }
-
-  // Log error object for debugging
-  console.error("Audio Error:", {
-    _type: audioElement.error?.constructor?.name || "undefined",
-    value: audioElement.error || "undefined"
+  console.error("Audio Error Details:", {
+    currentUrl: audioElement.src,
+    readyState: audioElement.readyState,
+    networkState: audioElement.networkState,
+    error: audioElement.error
   });
 };
