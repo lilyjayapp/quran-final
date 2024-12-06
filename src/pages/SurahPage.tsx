@@ -14,12 +14,22 @@ const SurahPage = () => {
 
   useEffect(() => {
     if (currentVerseNumber && verseRefs.current[currentVerseNumber]) {
+      console.log("Scrolling to verse:", currentVerseNumber);
       verseRefs.current[currentVerseNumber]?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
     }
   }, [currentVerseNumber]);
+
+  const handleVerseChange = (verseNumber: number) => {
+    console.log("Verse changed to:", verseNumber);
+    // Find the corresponding verse in the current surah
+    const verse = surah?.verses.find(v => v.numberInSurah === verseNumber);
+    if (verse) {
+      setCurrentVerseNumber(verse.number);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -78,7 +88,7 @@ const SurahPage = () => {
         <AudioPlayer 
           verses={surah.verses}
           currentSurahNumber={surah.number}
-          onVerseChange={setCurrentVerseNumber}
+          onVerseChange={handleVerseChange}
         />
       )}
     </div>
