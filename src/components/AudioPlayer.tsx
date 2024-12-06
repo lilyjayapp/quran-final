@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { reciters } from "@/utils/reciters";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { toast } from "sonner";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import AudioControls from "./AudioControls";
+import AudioLanguageSelect from "./audio/AudioLanguageSelect";
+import ReciterSelect from "./audio/ReciterSelect";
+import { getAudioUrl, handleAudioError } from "@/utils/audioUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -48,7 +43,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      console.log("Audio Error Details:");
+      handleAudioError(audioRef.current);
       console.log("- Current reciter:", selectedReciter);
       console.log("- Current language:", recitationLanguage);
       console.log("- Current verse number:", verses[currentVerseIndex]?.number);
@@ -62,6 +57,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               setRecitationLanguage("arabic");
               localStorage.setItem("recitationLanguage", "arabic");
               setSelectedReciter("ar.alafasy");
+              localStorage.setItem("selectedReciter", "ar.alafasy");
               setTimeout(retryPlayback, 500);
             },
           },
@@ -73,6 +69,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             label: "Try Default Reciter",
             onClick: () => {
               setSelectedReciter("ar.alafasy");
+              localStorage.setItem("selectedReciter", "ar.alafasy");
               setTimeout(retryPlayback, 500);
             },
           },
@@ -89,26 +86,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       resetAudio();
       navigate(`/surah/${nextSurahNumber}`);
     }
-  };
-
-  const getAudioUrl = (verseNumber: number) => {
-    if (!verseNumber) return "";
-    
-    let url;
-    if (recitationLanguage === "english") {
-      url = `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
-    } else {
-      url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
-    }
-    
-    console.log("Generated audio URL:", url);
-    console.log("Audio settings:", {
-      language: recitationLanguage,
-      reciter: selectedReciter,
-      verseNumber: verseNumber
-    });
-    
-    return url;
   };
 
   const handleReciterChange = (value: string) => {
@@ -158,35 +135,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             disablePrevious={currentSurahNumber <= 1}
             disableNext={currentSurahNumber >= 114}
           />
-          <Select
+          <AudioLanguageSelect
             value={recitationLanguage}
-            onValueChange={handleLanguageChange}
+            onChange={handleLanguageChange}
             disabled={isLoading}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select audio language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="arabic">Arabic Recitation</SelectItem>
-              <SelectItem value="english">English Recitation</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
+          />
+          <ReciterSelect
             value={selectedReciter}
-            onValueChange={handleReciterChange}
+            onChange={handleReciterChange}
             disabled={isLoading || recitationLanguage === "english"}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select reciter" />
-            </SelectTrigger>
-            <SelectContent>
-              {reciters.map((reciter) => (
-                <SelectItem key={reciter.identifier} value={reciter.identifier}>
-                  {reciter.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
         <div className="text-sm text-gray-600">
           {verses[currentVerseIndex]?.translation}
@@ -194,7 +152,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       </div>
       <audio
         ref={audioRef}
-        src={getAudioUrl(verses[currentVerseIndex]?.number)}
+        src={getAudioUrl(verses[currentVerseIndex]?.number, recitationLanguage, selectedReciter)}
         onEnded={playNextVerse}
         preload="auto"
         crossOrigin="anonymous"
