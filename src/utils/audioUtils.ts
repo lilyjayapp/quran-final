@@ -25,4 +25,7 @@ export const handleAudioError = (audioElement: HTMLAudioElement | null) => {
   console.log("Current audio URL:", audioElement.src);
   console.log("Audio ready state:", audioElement.readyState);
   console.log("Network state:", audioElement.networkState);
+  console.log("Error code:", audioElement.error?.code);
+  console.log("Error message:", audioElement.error?.message);
+  console.log("Browser:", navigator.userAgent);
 };
