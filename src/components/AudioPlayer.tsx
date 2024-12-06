@@ -40,6 +40,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     resetAudio,
     playNextVerse,
     retryPlayback,
+    setIsPlaying
   } = useAudioPlayer({ 
     verses,
     onVerseChange,
@@ -112,11 +113,26 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     });
   };
 
+  const playEnglishTranslation = (startFromIndex: number = currentVerseIndex) => {
+    if (startFromIndex >= verses.length) {
+      setIsPlaying(false);
+      return;
+    }
+
+    speak(verses[startFromIndex].translation, () => {
+      // After current verse ends, automatically play next verse
+      if (isPlaying && startFromIndex < verses.length - 1) {
+        playEnglishTranslation(startFromIndex + 1);
+      } else if (startFromIndex >= verses.length - 1) {
+        setIsPlaying(false);
+      }
+    });
+  };
+
   const handleLanguageChange = (value: string) => {
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
     
-    // Stop any ongoing audio and reset state
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -127,10 +143,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       toast.info("English audio using text-to-speech", {
         description: "Playing English translation using text-to-speech technology.",
       });
-      setSelectedReciter("ar.alafasy"); // Reset reciter when switching to English
-      // Start TTS for current verse if playing
-      if (isPlaying && verses[currentVerseIndex]?.translation) {
-        speak(verses[currentVerseIndex].translation, playNextVerse);
+      setSelectedReciter("ar.alafasy");
+      if (isPlaying) {
+        playEnglishTranslation();
       }
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
@@ -142,14 +157,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Handle TTS for English mode
   useEffect(() => {
     if (recitationLanguage === "english" && isPlaying) {
-      // Ensure Arabic audio is stopped
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      if (verses[currentVerseIndex]?.translation) {
-        speak(verses[currentVerseIndex].translation, playNextVerse);
-      }
+      playEnglishTranslation();
     }
   }, [currentVerseIndex, recitationLanguage, isPlaying]);
 
@@ -165,7 +177,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 if (isPlaying) {
                   stopSpeaking();
                 } else {
-                  speak(verses[currentVerseIndex].translation, playNextVerse);
+                  playEnglishTranslation();
                 }
               }
               togglePlay();
@@ -184,7 +196,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             }}
             onRetry={() => {
               if (recitationLanguage === "english") {
-                speak(verses[currentVerseIndex].translation, playNextVerse);
+                playEnglishTranslation();
               } else {
                 retryPlayback();
               }

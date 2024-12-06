@@ -1,21 +1,34 @@
-export const speak = (text: string, onEnd?: () => void) => {
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel();
+let speechSynthesis: SpeechSynthesis;
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'en-US';
-  utterance.rate = 0.9; // Slightly slower for better clarity
+if (typeof window !== 'undefined') {
+  speechSynthesis = window.speechSynthesis;
+}
+
+export const speak = (text: string, onEnd?: () => void) => {
+  stopSpeaking();
   
-  if (onEnd) {
-    utterance.onend = onEnd;
+  if (!speechSynthesis) {
+    console.error('Speech synthesis not supported');
+    return;
   }
 
-  window.speechSynthesis.speak(utterance);
-  
-  console.log("TTS started with text:", text);
+  currentUtterance = new SpeechSynthesisUtterance(text);
+  currentUtterance.rate = 0.9; // Slightly slower for better clarity
+  currentUtterance.onend = () => {
+    if (onEnd) onEnd();
+  };
+
+  speechSynthesis.speak(currentUtterance);
 };
 
 export const stopSpeaking = () => {
-  window.speechSynthesis.cancel();
-  console.log("TTS stopped");
+  if (speechSynthesis) {
+    speechSynthesis.cancel();
+  }
+  currentUtterance = null;
+};
+
+export const isSpeaking = () => {
+  return speechSynthesis?.speaking || false;
 };
