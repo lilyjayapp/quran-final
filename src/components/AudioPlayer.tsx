@@ -85,6 +85,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
     
+    // Stop any current playback
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -92,6 +93,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     stopSpeaking();
     setIsPlaying(false);
     
+    // Update reciter if needed
     if (value !== "ar.alafasy") {
       toast.info(`Switched to ${value} recitation`);
       setSelectedReciter("ar.alafasy");
@@ -133,7 +135,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       }
       setIsPlaying(false);
     };
-  }, [recitationLanguage]);
+  }, []);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">

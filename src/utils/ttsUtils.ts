@@ -36,10 +36,13 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
 
   currentUtterance = new SpeechSynthesisUtterance(text);
   currentUtterance.lang = browserLanguage;
-  currentUtterance.rate = 0.9; // Slightly slower for better clarity
-  currentUtterance.onend = () => {
-    if (onEnd) onEnd();
-  };
+  currentUtterance.rate = 0.9;
+
+  if (onEnd) {
+    currentUtterance.onend = () => {
+      onEnd();
+    };
+  }
 
   currentUtterance.onerror = (event) => {
     console.error('Speech synthesis error:', event);
