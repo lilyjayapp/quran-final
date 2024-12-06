@@ -58,28 +58,30 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   });
 
-  const playEnglishTranslation = async (startFromIndex: number = currentVerseIndex) => {
-    if (startFromIndex >= verses.length) {
-      setIsPlaying(false);
-      return;
-    }
-
-    const translations = verses.slice(startFromIndex).map(verse => verse.translation);
-    let currentIndex = startFromIndex;
-
-    const playNext = () => {
-      if (currentIndex < verses.length - 1 && isPlaying) {
-        currentIndex++;
+  const playEnglishTranslation = async () => {
+    let currentIndex = currentVerseIndex;
+    const translations = verses.map(verse => verse.translation);
+    
+    const playNextVerse = () => {
+      if (!isPlaying) return; // Stop if playback is paused
+      
+      currentIndex++;
+      if (currentIndex < verses.length) {
         if (onVerseChange) {
           onVerseChange(verses[currentIndex].number);
         }
-        speak(translations[currentIndex - startFromIndex], playNext);
+        speak(translations[currentIndex], playNextVerse);
       } else {
         setIsPlaying(false);
+        currentIndex = 0;
+        if (onVerseChange) {
+          onVerseChange(verses[0].number);
+        }
       }
     };
 
-    speak(translations[0], playNext);
+    // Start playing from current verse
+    speak(translations[currentIndex], playNextVerse);
   };
 
   const handleLanguageChange = (value: string) => {
