@@ -6,8 +6,10 @@
 
 body {
   @apply bg-background text-textPrimary;
-  /* Add padding to account for fixed header */
-  padding-top: 160px;
+  /* Add padding to account for fixed header and ensure it works in iframes */
+  padding-top: 160px !important;
+  min-height: 100vh;
+  position: relative;
 }
 
 .arabic-text {

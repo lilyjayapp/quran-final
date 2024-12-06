@@ -172,7 +172,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-2 sm:p-4 z-50">
+    <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-2 sm:p-4 z-[9999] shadow-md" style={{ position: 'fixed', top: 0 }}>
       <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
           <AudioControls
