@@ -31,6 +31,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [selectedReciter, setSelectedReciter] = useState(() =>
     localStorage.getItem("selectedReciter") || "ar.alafasy"
   );
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const navigate = useNavigate();
 
   const { currentVerseIndex, playNextVerse, resetVerse } = useVerseProgression({
@@ -50,9 +51,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      toast.error("Audio not available", {
-        description: "Please try selecting a different reciter.",
-      });
+      // Only show error if we're not transitioning between verses
+      if (!isTransitioning) {
+        toast.error("Audio not available", {
+          description: "Please try selecting a different reciter.",
+        });
+      }
     }
   });
 
@@ -133,19 +137,28 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     };
   }, []);
 
-  const handleAudioEnded = () => {
+  const handleAudioEnded = async () => {
+    setIsTransitioning(true);
     const hasMoreVerses = playNextVerse();
+    
     if (hasMoreVerses && recitationLanguage === "ar.alafasy") {
       setIsPlaying(true);
       if (audioRef.current) {
-        audioRef.current.play().catch(error => {
+        try {
+          await audioRef.current.play();
+        } catch (error) {
           console.error("Error playing next verse:", error);
-          toast.error("Error playing audio");
-        });
+          // Only show error if it's not a user interaction error
+          if (error instanceof Error && error.name !== "NotAllowedError") {
+            toast.error("Error playing audio");
+          }
+        }
       }
     } else {
       setIsPlaying(false);
     }
+    // Small delay to prevent false error during transition
+    setTimeout(() => setIsTransitioning(false), 500);
   };
 
   return (
@@ -201,6 +214,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onEnded={handleAudioEnded}
           preload="auto"
           crossOrigin="anonymous"
+          playsInline // Add this for better iOS support
         />
       )}
     </div>
