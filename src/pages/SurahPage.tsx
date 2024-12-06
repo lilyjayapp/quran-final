@@ -14,35 +14,21 @@ const SurahPage = () => {
 
   useEffect(() => {
     if (currentVerseNumber && verseRefs.current[currentVerseNumber]) {
-      console.log("Attempting to scroll to verse:", currentVerseNumber);
-      console.log("Available verse refs:", Object.keys(verseRefs.current));
       verseRefs.current[currentVerseNumber]?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
-    } else {
-      console.log("Could not scroll - verse ref not found:", currentVerseNumber);
     }
   }, [currentVerseNumber]);
 
   const handleVerseChange = (verseNumber: number) => {
-    console.log("Verse change triggered:", verseNumber);
-    console.log("Current surah verses:", surah?.verses.map(v => ({
-      numberInSurah: v.numberInSurah,
-      number: v.number
-    })));
-    
-    // Try to find the verse both by numberInSurah and absolute number
     const verse = surah?.verses.find(v => 
       v.numberInSurah === verseNumber || 
       v.number === verseNumber
     );
 
     if (verse) {
-      console.log("Found matching verse:", verse.number);
       setCurrentVerseNumber(verse.number);
-    } else {
-      console.log("No matching verse found for:", verseNumber);
     }
   };
 
@@ -70,7 +56,7 @@ const SurahPage = () => {
           onClick={() => navigate('/')}
           className="flex items-center gap-2"
         >
-          <Home className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           Back to Surah List
         </Button>
       </div>
