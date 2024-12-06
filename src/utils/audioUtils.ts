@@ -8,6 +8,7 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string, r
     url = `https://cdn.islamic.network/quran/audio/128/${reciter}/${verseNumber}.mp3`;
   }
   
+  // Log audio settings and URL for debugging
   console.log("Audio settings:", {
     language,
     reciter,
