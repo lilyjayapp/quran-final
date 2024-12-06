@@ -36,7 +36,7 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-xl">Loading Surahs...</div>
       </div>
     );
@@ -44,14 +44,14 @@ const Index = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-xl text-red-500">Error loading Surahs</div>
       </div>
     );
   }
 
   return (
-    <div className="container py-24">
+    <div className="container pt-32 pb-16">
       <h1 className="text-4xl font-bold text-center mb-8">The Noble Quran</h1>
       <div className="max-w-md mx-auto mb-8 space-y-4">
         <Select value={selectedReciter} onValueChange={handleReciterChange}>
