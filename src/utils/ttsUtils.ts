@@ -39,6 +39,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
   currentUtterance = new SpeechSynthesisUtterance(text);
   currentUtterance.lang = browserLanguage;
   currentUtterance.rate = 0.9;
+  
   currentUtterance.onstart = () => {
     console.log('Speech synthesis started');
   };
@@ -51,7 +52,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
 
     currentUtterance.onerror = (event) => {
       console.error('Speech synthesis error:', event);
-      onEnd();
+      onEnd(); // Call onEnd even on error to maintain playback chain
     };
   }
 

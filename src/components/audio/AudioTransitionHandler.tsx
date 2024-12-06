@@ -48,8 +48,10 @@ const AudioTransitionHandler = ({
         await audioRef.current.play();
       } else if (recitationLanguage !== "ar.alafasy") {
         console.log("Starting translation playback");
-        setIsPlaying(true); // Ensure playing state is true before starting
-        await playTranslations();
+        await playTranslations().catch(error => {
+          console.error("Translation playback failed:", error);
+          throw error;
+        });
       }
     } catch (error) {
       console.error("Error playing next verse/translation:", error);
@@ -61,14 +63,23 @@ const AudioTransitionHandler = ({
   };
 
   React.useEffect(() => {
-    console.log("AudioTransitionHandler effect triggered:", {
-      isPlaying,
-      currentVerseIndex
-    });
-    
-    if (isPlaying) {
-      handleNextVerse();
-    }
+    let isMounted = true;
+
+    const playNextVerseIfMounted = async () => {
+      if (isMounted && isPlaying) {
+        console.log("AudioTransitionHandler effect triggered:", {
+          isPlaying,
+          currentVerseIndex
+        });
+        await handleNextVerse();
+      }
+    };
+
+    playNextVerseIfMounted();
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentVerseIndex, isPlaying]);
 
   return null;
