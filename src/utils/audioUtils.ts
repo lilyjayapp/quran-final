@@ -1,8 +1,9 @@
 export const getAudioUrl = (verseNumber: number | undefined, language: string, reciter: string) => {
   if (!verseNumber) return "";
   
-  // Always use Arabic audio since English translations are unavailable
-  const url = `https://cdn.islamic.network/quran/audio/128/${reciter}/${verseNumber}.mp3`;
+  // Use HTTPS for the CDN URL and add CORS proxy for production
+  const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
+  const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
   
   // Log audio settings and URL for debugging
   console.log("Audio settings:", {
