@@ -58,7 +58,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onClick: () => {
             setRecitationLanguage("arabic");
             setSelectedReciter("ar.alafasy");
-            setTimeout(retryPlayback, 500); // Give time for the audio source to update
+            setTimeout(retryPlayback, 500);
           },
         },
       });
@@ -78,13 +78,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const getAudioUrl = (verseNumber: number) => {
     if (!verseNumber) return "";
     
-    let url = "";
-    
-    if (recitationLanguage === "english") {
-      url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verseNumber}.mp3`;
-    } else {
-      url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
-    }
+    // Always use Arabic recitation URL since English audio is not available
+    const url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
     
     console.log("Generated audio URL:", url);
     console.log("Audio settings:", {
@@ -116,8 +111,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     
     if (value === "english") {
       setSelectedReciter("ar.alafasy");
-      toast.info("Switching to English", {
-        description: "Note: English audio may not be available for all verses. You can switch back to Arabic if needed.",
+      toast.info("Translation Language Changed", {
+        description: "Note: The audio will remain in Arabic while showing English translation.",
       });
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
@@ -148,11 +143,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             disabled={isLoading}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select language" />
+              <SelectValue placeholder="Select translation" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="arabic">Arabic</SelectItem>
-              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="arabic">Arabic Translation</SelectItem>
+              <SelectItem value="english">English Translation</SelectItem>
             </SelectContent>
           </Select>
           <Select
