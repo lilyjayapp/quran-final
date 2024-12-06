@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, Pause, RotateCcw, RefreshCw } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipBack, SkipForward, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface AudioControlsProps {
@@ -7,7 +7,11 @@ interface AudioControlsProps {
   isLoading: boolean;
   onPlayPause: () => void;
   onReset: () => void;
+  onPrevious: () => void;
+  onNext: () => void;
   onRetry: () => void;
+  disablePrevious: boolean;
+  disableNext: boolean;
 }
 
 const AudioControls: React.FC<AudioControlsProps> = ({
@@ -15,10 +19,22 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   isLoading,
   onPlayPause,
   onReset,
+  onPrevious,
+  onNext,
   onRetry,
+  disablePrevious,
+  disableNext,
 }) => {
   return (
     <div className="flex items-center gap-4">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onPrevious}
+        disabled={disablePrevious || isLoading}
+      >
+        <SkipBack size={20} />
+      </Button>
       <Button
         variant="outline"
         size="icon"
@@ -40,6 +56,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         disabled={isLoading}
       >
         <RotateCcw size={20} />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={onNext}
+        disabled={disableNext || isLoading}
+      >
+        <SkipForward size={20} />
       </Button>
       <Button
         variant="outline"

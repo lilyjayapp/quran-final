@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
@@ -28,6 +29,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   currentSurahNumber,
   onVerseChange,
 }) => {
+  const navigate = useNavigate();
+
   const {
     recitationLanguage,
     selectedReciter,
@@ -121,6 +124,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     };
   }, []);
 
+  const disablePrevious = currentSurahNumber <= 1;
+  const disableNext = currentSurahNumber >= 114;
+
+  const handlePrevious = () => {
+    if (!disablePrevious) {
+      navigate(`/surah/${currentSurahNumber - 1}`);
+    }
+  };
+
+  const handleNext = () => {
+    if (!disableNext) {
+      navigate(`/surah/${currentSurahNumber + 1}`);
+    }
+  };
+
   return (
     <AudioContainer>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
@@ -134,6 +152,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             resetVerse();
             setIsPlaying(false);
           }}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
           onRetry={async () => {
             if (recitationLanguage !== "ar.alafasy") {
               setIsPlaying(true);
@@ -142,6 +162,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               await retryPlayback();
             }
           }}
+          disablePrevious={disablePrevious}
+          disableNext={disableNext}
         />
         <AudioSelectors
           recitationLanguage={recitationLanguage}
