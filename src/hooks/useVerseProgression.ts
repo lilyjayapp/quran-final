@@ -16,14 +16,14 @@ export const useVerseProgression = ({ totalVerses, onVerseChange }: UseVerseProg
       if (onVerseChange) {
         onVerseChange(nextIndex + 1); // Adding 1 because verse numbers are 1-based
       }
-      return true;
-    } else {
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(1);
-      }
-      return false;
+      return true; // There are more verses to play
     }
+    // Reset to beginning when reaching the end
+    setCurrentVerseIndex(0);
+    if (onVerseChange) {
+      onVerseChange(1);
+    }
+    return false; // No more verses to play
   };
 
   const resetVerse = () => {

@@ -143,9 +143,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsTransitioning(true);
     const hasMoreVerses = playNextVerse();
     
-    if (hasMoreVerses && recitationLanguage === "ar.alafasy") {
+    if (hasMoreVerses) {
       setIsPlaying(true);
-      if (audioRef.current) {
+      if (recitationLanguage === "ar.alafasy" && audioRef.current) {
         try {
           if (isMobileDevice()) {
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -159,6 +159,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             toast.error("Error playing audio");
           }
         }
+      } else if (recitationLanguage !== "ar.alafasy") {
+        await playTranslations();
       }
     } else {
       setIsPlaying(false);
