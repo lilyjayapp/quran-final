@@ -24,11 +24,16 @@ interface SurahDetail {
   verses: Verse[];
 }
 
+const API_BASE_URL = "https://api.alquran.cloud/v1";
+
 export const useSurahs = () => {
   return useQuery({
     queryKey: ["surahs"],
     queryFn: async () => {
-      const response = await fetch("https://api.alquran.cloud/v1/surah");
+      const response = await fetch(`${API_BASE_URL}/surah`);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
       const data = await response.json();
       return data.data as Surah[];
     },
@@ -48,8 +53,8 @@ export const useSurahDetail = (surahNumber: number) => {
       try {
         // Fetch both Arabic and translation data in parallel
         const [arabicResponse, translationResponse] = await Promise.all([
-          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`),
-          fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/${selectedLanguage}`),
+          fetch(`${API_BASE_URL}/surah/${surahNumber}/ar.alafasy`),
+          fetch(`${API_BASE_URL}/surah/${surahNumber}/${selectedLanguage}`),
         ]);
 
         // Check if both responses are successful
@@ -100,7 +105,7 @@ export const useSurahDetail = (surahNumber: number) => {
               text: verse.text,
               numberInSurah: verse.numberInSurah,
               translation: "Translation unavailable due to verse count mismatch",
-              audio: `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`,
+              audio: `${API_BASE_URL}/audio/128/ar.alafasy/${verse.number}.mp3`,
             })),
           };
         }
