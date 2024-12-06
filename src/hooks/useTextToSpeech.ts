@@ -20,7 +20,7 @@ export const useTextToSpeech = ({
   language,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       console.log("Starting playTranslations:", {
         currentVerseIndex,
         totalVerses: verses.length,
@@ -30,14 +30,14 @@ export const useTextToSpeech = ({
 
       if (!verses || verses.length === 0) {
         console.error("No verses available for playback");
-        reject(new Error("No verses available"));
+        resolve();
         return;
       }
 
       const currentVerse = verses[currentVerseIndex];
       if (!currentVerse) {
         console.error("No verse found at index:", currentVerseIndex);
-        reject(new Error("Verse not found"));
+        resolve();
         return;
       }
 
@@ -49,17 +49,18 @@ export const useTextToSpeech = ({
           onVerseChange(currentVerse.number);
         }
 
+        // Only resolve after speech has completed
         speak(
           currentVerse.translation, 
           () => {
-            console.log("Speech ended for verse:", currentVerse.number, "resolving promise");
+            console.log("Speech ended for verse:", currentVerse.number);
             resolve();
           }, 
           language
         );
       } catch (error) {
         console.error("Text-to-speech error:", error);
-        reject(error);
+        resolve();
       }
     });
   };

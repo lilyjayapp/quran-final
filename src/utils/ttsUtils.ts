@@ -30,6 +30,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
   
   if (!speechSynthesis) {
     console.error('Speech synthesis not supported');
+    if (onEnd) onEnd();
     return;
   }
 
