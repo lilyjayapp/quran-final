@@ -27,6 +27,11 @@ export const useAudioQueue = ({
 
     try {
       setIsLoading(true);
+      console.log('Playing verse:', {
+        index: currentIndex,
+        verseNumber: verses[currentIndex].number,
+        language: recitationLanguage
+      });
       
       if (onVerseChange) {
         onVerseChange(verses[currentIndex].number);
@@ -39,11 +44,14 @@ export const useAudioQueue = ({
         await new Promise<void>((resolve) => {
           speak(
             verses[currentIndex].translation,
-            () => resolve(),
+            () => {
+              console.log('TTS completed for verse:', currentIndex);
+              resolve();
+              handleVerseComplete();
+            },
             recitationLanguage
           );
         });
-        handleVerseComplete();
       }
     } catch (error) {
       console.error('Playback error:', error);
@@ -55,11 +63,15 @@ export const useAudioQueue = ({
   };
 
   const handleVerseComplete = () => {
+    console.log('Verse complete, current index:', currentIndex, 'total verses:', verses.length);
     if (currentIndex < verses.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
       setIsPlaying(false);
       setCurrentIndex(0);
+      if (onVerseChange) {
+        onVerseChange(verses[0].number);
+      }
     }
   };
 
@@ -73,6 +85,7 @@ export const useAudioQueue = ({
     const audio = audioRef.current;
     
     const handleEnded = () => {
+      console.log('Audio ended, moving to next verse');
       handleVerseComplete();
     };
 
@@ -87,6 +100,7 @@ export const useAudioQueue = ({
   }, []);
 
   const togglePlay = () => {
+    console.log('Toggle play:', !isPlaying);
     if (!isPlaying) {
       setIsPlaying(true);
     } else {
@@ -105,6 +119,9 @@ export const useAudioQueue = ({
     stopSpeaking();
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
+    if (onVerseChange) {
+      onVerseChange(verses[0].number);
+    }
   };
 
   return {
