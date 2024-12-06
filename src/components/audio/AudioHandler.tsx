@@ -19,8 +19,9 @@ const AudioHandler: React.FC<AudioHandlerProps> = ({
       // For iOS devices, we need to load the audio when the user interacts
       if (isIOSDevice()) {
         audioRef.current.load();
-        // iOS specific settings
-        audioRef.current.playsinline = true;
+        // Use setAttribute for non-standard attributes
+        audioRef.current.setAttribute('playsinline', 'true');
+        audioRef.current.setAttribute('webkit-playsinline', 'true');
         audioRef.current.controls = false;
         audioRef.current.preload = "auto";
       }
@@ -51,8 +52,9 @@ const AudioHandler: React.FC<AudioHandlerProps> = ({
       onEnded={onEnded}
       preload={isIOSDevice() ? "auto" : isMobileDevice() ? "metadata" : "auto"}
       crossOrigin="anonymous"
-      playsInline
-      // iOS specific attributes
+      // Use data attributes for custom properties
+      data-playsinline="true"
+      data-webkit-playsinline="true"
       x-webkit-airplay="allow"
       controlsList="nodownload"
     />
