@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { isMobileDevice } from "@/utils/deviceUtils";
 import { toast } from "sonner";
 
@@ -25,11 +25,18 @@ const AudioTransitionHandler = ({
     console.log("Playing next verse:", {
       currentVerseIndex,
       recitationLanguage,
-      isPlaying
+      isPlaying,
+      totalVerses: verses.length
     });
     
     if (!isPlaying) {
       console.log("Playback stopped, not continuing to next verse");
+      return;
+    }
+
+    if (currentVerseIndex >= verses.length) {
+      console.log("Reached end of verses");
+      setIsPlaying(false);
       return;
     }
 
@@ -62,11 +69,11 @@ const AudioTransitionHandler = ({
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isPlaying) {
       handleNextVerse();
     }
-  }, [currentVerseIndex]);
+  }, [currentVerseIndex, isPlaying]);
 
   return null;
 };

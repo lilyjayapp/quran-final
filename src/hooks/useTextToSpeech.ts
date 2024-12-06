@@ -1,5 +1,4 @@
 import { speak, stopSpeaking } from "@/utils/ttsUtils";
-import { toast } from "sonner";
 
 interface UseTextToSpeechProps {
   verses: {
@@ -48,12 +47,14 @@ export const useTextToSpeech = ({
       return new Promise<void>((resolve) => {
         speak(currentVerse.translation, () => {
           console.log("Finished speaking verse:", currentVerse.number);
+          if (currentVerseIndex < verses.length - 1) {
+            setIsPlaying(true);
+          }
           resolve();
         }, language);
       });
     } catch (error) {
       console.error("Text-to-speech error:", error);
-      toast.error("Error playing translation. Please try a different language.");
       setIsPlaying(false);
       throw error;
     }
