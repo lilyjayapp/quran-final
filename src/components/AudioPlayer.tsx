@@ -10,6 +10,7 @@ import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import AudioHandler from "./audio/AudioHandler";
 import AudioTransitionHandler from "./audio/AudioTransitionHandler";
+import AudioNavigation from "./audio/AudioNavigation";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
 import { isMobileDevice } from "@/utils/deviceUtils";
