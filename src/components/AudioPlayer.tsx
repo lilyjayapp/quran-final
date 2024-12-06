@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
@@ -28,6 +29,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   currentSurahNumber,
   onVerseChange,
 }) => {
+  const navigate = useNavigate(); // Add this line to use navigation
+
   const {
     recitationLanguage,
     selectedReciter,
