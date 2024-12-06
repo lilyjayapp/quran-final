@@ -3,34 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const SurahPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
   const [currentVerseNumber, setCurrentVerseNumber] = useState<number | null>(null);
-  const verseRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
-
-  useEffect(() => {
-    if (currentVerseNumber && verseRefs.current[currentVerseNumber]) {
-      verseRefs.current[currentVerseNumber]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  }, [currentVerseNumber]);
-
-  const handleVerseChange = (verseNumber: number) => {
-    const verse = surah?.verses.find(v => 
-      v.numberInSurah === verseNumber || 
-      v.number === verseNumber
-    );
-
-    if (verse) {
-      setCurrentVerseNumber(verse.number);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -70,9 +49,9 @@ const SurahPage = () => {
       <div className="max-w-3xl mx-auto">
         {surah?.verses.map((verse) => (
           <div 
-            key={verse.number} 
-            ref={el => verseRefs.current[verse.number] = el}
-            className={`verse-container mb-8 p-4 rounded-lg ${
+            key={verse.number}
+            data-verse={verse.number}
+            className={`verse-container mb-8 p-4 rounded-lg transition-colors duration-300 ${
               currentVerseNumber === verse.number ? 'bg-primary/10' : ''
             }`}
           >
@@ -81,7 +60,9 @@ const SurahPage = () => {
                 {verse.numberInSurah}
               </span>
             </div>
-            <p className="arabic-text text-right mb-4 text-2xl leading-loose">{verse.text}</p>
+            <p className="arabic-text text-right mb-4 text-2xl leading-loose">
+              {verse.text}
+            </p>
             <p className="text-gray-700">{verse.translation}</p>
           </div>
         ))}
@@ -91,7 +72,7 @@ const SurahPage = () => {
         <AudioPlayer 
           verses={surah.verses}
           currentSurahNumber={surah.number}
-          onVerseChange={handleVerseChange}
+          onVerseChange={setCurrentVerseNumber}
         />
       )}
     </div>

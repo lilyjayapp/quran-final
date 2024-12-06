@@ -40,7 +40,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioQueue({
     verses,
     recitationLanguage,
-    onVerseChange,
+    onVerseChange: (verseNumber) => {
+      if (onVerseChange) {
+        onVerseChange(verseNumber);
+        // Scroll the verse into view with a smooth animation
+        const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+        if (verseElement) {
+          verseElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+      }
+    },
   });
 
   const disablePrevious = currentSurahNumber <= 1;
