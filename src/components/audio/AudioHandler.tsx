@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { isMobileDevice, isIOSDevice } from '@/utils/deviceUtils';
+import { useMobileAudio } from '@/hooks/useMobileAudio';
 
 interface AudioHandlerProps {
   audioRef: React.RefObject<HTMLAudioElement>;
@@ -14,8 +15,17 @@ const AudioHandler: React.FC<AudioHandlerProps> = ({
   onEnded,
   isPlaying,
 }) => {
+  useMobileAudio(audioRef);
+
   useEffect(() => {
     if (audioRef.current) {
+      console.log('AudioHandler setup:', {
+        src,
+        isPlaying,
+        isMobile: isMobileDevice(),
+        isIOS: isIOSDevice()
+      });
+
       // For iOS devices, we need to load the audio when the user interacts
       if (isIOSDevice()) {
         audioRef.current.load();
@@ -30,18 +40,6 @@ const AudioHandler: React.FC<AudioHandlerProps> = ({
       if (isMobileDevice() && !isIOSDevice()) {
         audioRef.current.preload = "metadata";
       }
-
-      // Add event listeners for better error tracking
-      const handleError = (e: ErrorEvent) => {
-        console.error('Audio error:', e.message);
-      };
-
-      audioRef.current.addEventListener('error', handleError);
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.removeEventListener('error', handleError);
-        }
-      };
     }
   }, [src]);
 

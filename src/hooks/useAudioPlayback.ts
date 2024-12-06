@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { isMobileDevice, isIOSDevice, isAndroidDevice } from "@/utils/deviceUtils";
+import { isMobileDevice, isIOSDevice } from "@/utils/deviceUtils";
+import { useAudioError } from "./useAudioError";
 
 interface UseAudioPlaybackProps {
   verses: {
@@ -18,41 +19,18 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const retryCount = useRef(0);
 
-  const handleAudioError = (error: any) => {
-    console.error("Audio Error:", error);
-    setIsLoading(false);
-    
-    // Don't show error toast for user interaction errors on mobile
-    if (error instanceof Error && error.name === "NotAllowedError" && isMobileDevice()) {
-      console.log("Suppressing user interaction error on mobile");
-      return;
-    }
-
-    // For iOS devices, retry playback a few times before showing error
-    if (isIOSDevice() && retryCount.current < 3) {
-      retryCount.current++;
-      console.log(`Retrying playback on iOS (attempt ${retryCount.current})`);
-      setTimeout(() => retryPlayback(), 500);
-      return;
-    }
-
-    // Reset retry count
-    retryCount.current = 0;
-    
-    // Only show error toast if we're not on Android (to reduce noise)
-    if (!isAndroidDevice()) {
-      toast.error("Audio playback error", {
-        description: "Please try again or select a different reciter.",
-      });
-    }
-    
-    if (onError) onError();
-  };
+  useAudioError(audioRef, onError);
 
   const retryPlayback = async () => {
     if (!audioRef.current) return;
     
     try {
+      console.log('Retrying playback:', {
+        retryCount: retryCount.current,
+        isIOS: isIOSDevice(),
+        currentSrc: audioRef.current.src
+      });
+
       setIsLoading(true);
       if (isIOSDevice()) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -61,7 +39,8 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
       await audioRef.current.play();
       setIsPlaying(true);
     } catch (error) {
-      handleAudioError(error);
+      console.error('Retry playback failed:', error);
+      if (onError) onError();
     } finally {
       setIsLoading(false);
     }
@@ -71,13 +50,17 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
     if (!audioRef.current) return;
 
     try {
+      console.log('Toggle play:', {
+        currentState: isPlaying,
+        readyState: audioRef.current.readyState,
+        isIOS: isIOSDevice()
+      });
+
       if (!isPlaying) {
         setIsLoading(true);
         if (isIOSDevice()) {
-          // For iOS, we need to reset and reload the audio
           audioRef.current.currentTime = 0;
           await audioRef.current.load();
-          // Small delay to ensure audio is loaded
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         await audioRef.current.play();
@@ -87,7 +70,8 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
         setIsPlaying(false);
       }
     } catch (error) {
-      handleAudioError(error);
+      console.error('Toggle play failed:', error);
+      if (onError) onError();
     } finally {
       setIsLoading(false);
     }
@@ -101,34 +85,6 @@ export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
       retryCount.current = 0;
     }
   };
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleCanPlay = () => {
-      console.log("Audio can play");
-      setIsLoading(false);
-      if (isPlaying) {
-        audio.play().catch(handleAudioError);
-      }
-    };
-
-    const handleLoadStart = () => {
-      console.log("Audio loading started");
-      setIsLoading(true);
-    };
-
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('error', (e) => handleAudioError(e));
-
-    return () => {
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('error', (e) => handleAudioError(e));
-    };
-  }, [isPlaying]);
 
   return {
     isPlaying,
