@@ -93,23 +93,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const handleAudioEnded = async () => {
-    startTransition(() => {
-      const hasMoreVerses = playNextVerse();
-      
-      if (hasMoreVerses) {
-        AudioTransitionHandler({
-          audioRef,
-          recitationLanguage,
-          isPlaying,
-          setIsPlaying,
-          playTranslations,
-          currentVerseIndex,
-          verses
-        });
+    const hasMoreVerses = playNextVerse();
+    if (hasMoreVerses) {
+      if (recitationLanguage === "ar.alafasy") {
+        if (audioRef.current) {
+          try {
+            await audioRef.current.play();
+          } catch (error) {
+            setIsPlaying(false);
+          }
+        }
       } else {
-        setIsPlaying(false);
+        await playTranslations();
       }
-    });
+    } else {
+      setIsPlaying(false);
+    }
   };
 
   useEffect(() => {

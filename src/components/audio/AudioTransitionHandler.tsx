@@ -22,9 +22,7 @@ const AudioTransitionHandler = ({
   verses
 }: AudioTransitionHandlerProps) => {
   const handleNextVerse = async () => {
-    if (!isPlaying) {
-      return;
-    }
+    if (!isPlaying) return;
 
     if (currentVerseIndex >= verses.length) {
       setIsPlaying(false);
