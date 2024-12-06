@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useVerseProgression } from "@/hooks/useVerseProgression";
+import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
@@ -53,8 +54,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      // Only show error if we're not transitioning between verses
-      // and we're not on a mobile device (to reduce noise)
       if (!isTransitioning && !isMobileDevice()) {
         toast.error("Audio not available", {
           description: "Please try selecting a different reciter.",
@@ -148,15 +147,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setIsPlaying(true);
       if (audioRef.current) {
         try {
-          // Add a small delay before playing next verse on mobile
           if (isMobileDevice()) {
             await new Promise(resolve => setTimeout(resolve, 100));
           }
           await audioRef.current.play();
         } catch (error) {
           console.error("Error playing next verse:", error);
-          // Only show error if it's not a user interaction error
-          // and we're not on a mobile device
           if (error instanceof Error && 
               error.name !== "NotAllowedError" && 
               !isMobileDevice()) {
@@ -167,68 +163,53 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     } else {
       setIsPlaying(false);
     }
-    // Longer delay for mobile devices before removing transition state
     setTimeout(() => setIsTransitioning(false), isMobileDevice() ? 1000 : 500);
   };
 
   return (
-    <div 
-      className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-2 sm:p-4 z-[9999] shadow-md" 
-      style={{ 
-        position: 'fixed', 
-        top: 0,
-        width: '100%',
-        maxWidth: '100%',
-        margin: 0,
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
-        willChange: 'transform'
-      }}
-    >
-      <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-          <AudioControls
-            isPlaying={isPlaying}
-            isLoading={isLoading}
-            onPlayPause={handlePlayPause}
-            onReset={() => {
-              resetAudio();
-              stopSpeaking();
-              resetVerse();
-              setIsPlaying(false);
-            }}
-            onPrevious={() => navigateToSurah("previous")}
-            onNext={() => navigateToSurah("next")}
-            onRetry={async () => {
-              if (recitationLanguage !== "ar.alafasy") {
-                setIsPlaying(true);
-                await playTranslations();
-              } else {
-                await retryPlayback();
-              }
-            }}
-            disablePrevious={currentSurahNumber <= 1}
-            disableNext={currentSurahNumber >= 114}
-          />
-          <AudioSelectors
-            recitationLanguage={recitationLanguage}
-            selectedReciter={selectedReciter}
-            onLanguageChange={handleLanguageChange}
-            onReciterChange={(value) => {
-              if (recitationLanguage !== "ar.alafasy") {
-                toast.error("Reciter selection is only available for Arabic recitation");
-                return;
-              }
-              setSelectedReciter(value);
-              localStorage.setItem("selectedReciter", value);
-              resetAudio();
-              stopSpeaking();
-            }}
-            isLoading={isLoading}
-          />
-        </div>
-        <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
+    <AudioContainer>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+        <AudioControls
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          onPlayPause={handlePlayPause}
+          onReset={() => {
+            resetAudio();
+            stopSpeaking();
+            resetVerse();
+            setIsPlaying(false);
+          }}
+          onPrevious={() => navigateToSurah("previous")}
+          onNext={() => navigateToSurah("next")}
+          onRetry={async () => {
+            if (recitationLanguage !== "ar.alafasy") {
+              setIsPlaying(true);
+              await playTranslations();
+            } else {
+              await retryPlayback();
+            }
+          }}
+          disablePrevious={currentSurahNumber <= 1}
+          disableNext={currentSurahNumber >= 114}
+        />
+        <AudioSelectors
+          recitationLanguage={recitationLanguage}
+          selectedReciter={selectedReciter}
+          onLanguageChange={handleLanguageChange}
+          onReciterChange={(value) => {
+            if (recitationLanguage !== "ar.alafasy") {
+              toast.error("Reciter selection is only available for Arabic recitation");
+              return;
+            }
+            setSelectedReciter(value);
+            localStorage.setItem("selectedReciter", value);
+            resetAudio();
+            stopSpeaking();
+          }}
+          isLoading={isLoading}
+        />
       </div>
+      <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       {recitationLanguage === "ar.alafasy" && (
         <AudioHandler
           audioRef={audioRef}
@@ -237,7 +218,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           isPlaying={isPlaying}
         />
       )}
-    </div>
+    </AudioContainer>
   );
 };
 
