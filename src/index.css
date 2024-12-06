@@ -6,22 +6,9 @@
 
 body {
   @apply bg-background text-textPrimary;
-  /* Add padding to account for fixed header and ensure it works in iframes */
-  padding-top: 160px !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  position: relative;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-}
-
-/* Force hardware acceleration for fixed elements */
-.fixed {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
 .arabic-text {
@@ -36,17 +23,8 @@ body {
   @apply p-6 rounded-lg border border-gray-200 hover:border-primary transition-all cursor-pointer;
 }
 
-/* Add specific styles for iframe embedding */
-iframe body {
-  height: 100% !important;
-  max-height: 100% !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain !important;
-}
-
 /* Container styles to prevent overflow */
 .container {
-  max-height: calc(100vh - 160px);
   overflow-y: auto;
   overscroll-behavior-y: contain;
 }
