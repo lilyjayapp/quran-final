@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Select,
   SelectContent,
@@ -6,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { languages } from "@/utils/languages";
 
 interface AudioLanguageSelectProps {
   value: string;
@@ -13,19 +13,26 @@ interface AudioLanguageSelectProps {
   disabled?: boolean;
 }
 
-const AudioLanguageSelect: React.FC<AudioLanguageSelectProps> = ({
+const AudioLanguageSelect = ({
   value,
   onChange,
   disabled,
-}) => {
+}: AudioLanguageSelectProps) => {
   return (
-    <Select value={value} onValueChange={onChange} disabled={disabled}>
+    <Select
+      value={value}
+      onValueChange={onChange}
+      disabled={disabled}
+    >
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select audio language" />
+        <SelectValue placeholder="Select language" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="arabic">Arabic Recitation</SelectItem>
-        <SelectItem value="english">English Recitation</SelectItem>
+        {languages.map((language) => (
+          <SelectItem key={language.id} value={language.code}>
+            {language.name}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
