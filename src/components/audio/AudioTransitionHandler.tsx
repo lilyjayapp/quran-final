@@ -41,6 +41,8 @@ const AudioTransitionHandler = ({
     }
 
     try {
+      console.log("Starting playback for verse:", currentVerseIndex);
+      
       if (recitationLanguage === "ar.alafasy" && audioRef.current) {
         if (isMobileDevice()) {
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -48,8 +50,9 @@ const AudioTransitionHandler = ({
         await audioRef.current.play();
         console.log("Started playing next verse audio");
       } else if (recitationLanguage !== "ar.alafasy") {
+        console.log("Starting translation playback");
         await playTranslations();
-        console.log("Started playing next translation");
+        console.log("Completed translation playback");
       }
     } catch (error) {
       console.error("Error playing next verse/translation:", error);
@@ -61,6 +64,11 @@ const AudioTransitionHandler = ({
   };
 
   useEffect(() => {
+    console.log("AudioTransitionHandler effect triggered:", {
+      isPlaying,
+      currentVerseIndex
+    });
+    
     if (isPlaying) {
       handleNextVerse();
     }

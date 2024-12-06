@@ -39,19 +39,23 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
   currentUtterance = new SpeechSynthesisUtterance(text);
   currentUtterance.lang = browserLanguage;
   currentUtterance.rate = 0.9;
+  currentUtterance.onstart = () => {
+    console.log('Speech synthesis started');
+  };
 
   if (onEnd) {
     currentUtterance.onend = () => {
-      console.log('Speech synthesis ended');
+      console.log('Speech synthesis ended, calling onEnd callback');
+      onEnd();
+    };
+
+    currentUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
       onEnd();
     };
   }
 
-  currentUtterance.onerror = (event) => {
-    console.error('Speech synthesis error:', event);
-    if (onEnd) onEnd();
-  };
-
+  console.log('Speaking utterance...');
   speechSynthesis.speak(currentUtterance);
 };
 

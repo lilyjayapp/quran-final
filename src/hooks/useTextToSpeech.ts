@@ -40,22 +40,31 @@ export const useTextToSpeech = ({
 
     try {
       return new Promise<void>((resolve) => {
+        console.log("Setting up TTS for verse:", currentVerse.number);
+        
         if (onVerseChange) {
+          console.log("Triggering verse change to:", currentVerse.number);
           onVerseChange(currentVerse.number);
         }
 
         speak(currentVerse.translation, () => {
-          console.log("Finished speaking verse:", currentVerse.number);
+          console.log("Speech ended for verse:", currentVerse.number);
+          console.log("Current verse index:", currentVerseIndex);
+          console.log("Total verses:", verses.length);
+          
           if (currentVerseIndex < verses.length - 1) {
+            console.log("Moving to next verse");
             setIsPlaying(true);
             if (onVerseChange) {
-              onVerseChange(verses[currentVerseIndex + 1].number);
+              const nextVerseNumber = verses[currentVerseIndex + 1].number;
+              console.log("Triggering verse change to:", nextVerseNumber);
+              onVerseChange(nextVerseNumber);
             }
-            resolve();
           } else {
+            console.log("Reached end of verses");
             setIsPlaying(false);
-            resolve();
           }
+          resolve();
         }, language);
       });
     } catch (error) {
