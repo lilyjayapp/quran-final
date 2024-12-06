@@ -21,15 +21,6 @@ export const useAudioQueue = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(new Audio());
-  const nextAudioRef = useRef<HTMLAudioElement>(new Audio());
-
-  const preloadNextAudio = (index: number) => {
-    if (index < verses.length - 1 && recitationLanguage === "ar.alafasy") {
-      const nextVerse = verses[index + 1];
-      nextAudioRef.current.src = nextVerse.audio || '';
-      nextAudioRef.current.load();
-    }
-  };
 
   const playCurrentVerse = async () => {
     if (!verses[currentIndex]) return;
@@ -42,12 +33,9 @@ export const useAudioQueue = ({
       }
 
       if (recitationLanguage === "ar.alafasy") {
-        // Swap audio refs to use preloaded audio
-        [audioRef.current, nextAudioRef.current] = [nextAudioRef.current, audioRef.current];
+        audioRef.current.src = verses[currentIndex].audio || '';
         await audioRef.current.play();
-        preloadNextAudio(currentIndex);
       } else {
-        // Use text-to-speech for translations
         await new Promise<void>((resolve) => {
           speak(
             verses[currentIndex].translation,
@@ -98,7 +86,7 @@ export const useAudioQueue = ({
     };
   }, []);
 
-  const togglePlay = async () => {
+  const togglePlay = () => {
     if (!isPlaying) {
       setIsPlaying(true);
     } else {
