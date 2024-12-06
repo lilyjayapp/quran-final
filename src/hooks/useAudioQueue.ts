@@ -36,6 +36,7 @@ export const useAudioQueue = ({
         audioRef.current.src = verses[currentIndex].audio || '';
         await audioRef.current.play();
       } else {
+        // Use text-to-speech for non-Arabic recitations
         speak(
           verses[currentIndex].translation,
           () => {
