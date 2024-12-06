@@ -54,7 +54,6 @@ export const useTextToSpeech = ({
           
           if (currentVerseIndex < verses.length - 1) {
             console.log("Moving to next verse");
-            setIsPlaying(true);
             if (onVerseChange) {
               const nextVerseNumber = verses[currentVerseIndex + 1].number;
               console.log("Triggering verse change to:", nextVerseNumber);
@@ -69,7 +68,7 @@ export const useTextToSpeech = ({
       });
     } catch (error) {
       console.error("Text-to-speech error:", error);
-      toast.error("Error playing translation. Please try a different language.");
+      toast.error("Error playing translation");
       setIsPlaying(false);
       throw error;
     }
