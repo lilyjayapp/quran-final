@@ -2,9 +2,7 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string, r
   if (!verseNumber) return "";
   
   const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-  const url = `${baseUrl}${reciter}/${verseNumber}.mp3`;
-  
-  return url;
+  return `${baseUrl}${reciter}/${verseNumber}.mp3`;
 };
 
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {

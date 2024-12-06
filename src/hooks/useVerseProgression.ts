@@ -9,21 +9,19 @@ export const useVerseProgression = ({ totalVerses, onVerseChange }: UseVerseProg
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
 
   const playNextVerse = () => {
-    console.log("Playing next verse, current index:", currentVerseIndex, "total verses:", totalVerses);
     if (currentVerseIndex < totalVerses - 1) {
       const nextIndex = currentVerseIndex + 1;
       setCurrentVerseIndex(nextIndex);
       if (onVerseChange) {
-        onVerseChange(nextIndex + 1); // Adding 1 because verse numbers are 1-based
+        onVerseChange(nextIndex + 1);
       }
-      return true; // There are more verses to play
+      return true;
     }
-    // Reset to beginning when reaching the end
     setCurrentVerseIndex(0);
     if (onVerseChange) {
       onVerseChange(1);
     }
-    return false; // No more verses to play
+    return false;
   };
 
   const resetVerse = () => {

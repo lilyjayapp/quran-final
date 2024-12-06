@@ -9,8 +9,6 @@ import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import AudioHandler from "./audio/AudioHandler";
-import AudioTransitionHandler from "./audio/AudioTransitionHandler";
-import AudioNavigation from "./audio/AudioNavigation";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
 import { isMobileDevice } from "@/utils/deviceUtils";
@@ -31,12 +29,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onVerseChange,
 }) => {
   const {
-    isTransitioning,
     recitationLanguage,
     selectedReciter,
     setSelectedReciter,
     handleLanguageChange,
-    startTransition
   } = useAudioState();
 
   const { currentVerseIndex, playNextVerse, resetVerse } = useVerseProgression({
@@ -56,11 +52,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      if (!isTransitioning && !isMobileDevice()) {
-        toast.error("Audio not available", {
-          description: "Please try selecting a different reciter.",
-        });
-      }
+      toast.error("Audio not available", {
+        description: "Please try selecting a different reciter.",
+      });
     }
   });
 
@@ -71,11 +65,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange,
     setIsPlaying,
     language: recitationLanguage
-  });
-
-  const navigation = AudioNavigation({
-    currentSurahNumber,
-    resetAudio,
   });
 
   const handlePlayPause = async () => {
@@ -132,6 +121,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     };
   }, []);
 
+  const disablePrevious = currentSurahNumber <= 1;
+  const disableNext = currentSurahNumber >= 114;
+
+  const handlePrevious = () => {
+    if (!disablePrevious) {
+      navigate(`/surah/${currentSurahNumber - 1}`);
+    }
+  };
+
+  const handleNext = () => {
+    if (!disableNext) {
+      navigate(`/surah/${currentSurahNumber + 1}`);
+    }
+  };
+
   return (
     <AudioContainer>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
@@ -145,8 +149,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             resetVerse();
             setIsPlaying(false);
           }}
-          onPrevious={() => navigation.navigateToSurah("previous")}
-          onNext={() => navigation.navigateToSurah("next")}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
           onRetry={async () => {
             if (recitationLanguage !== "ar.alafasy") {
               setIsPlaying(true);
@@ -155,8 +159,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               await retryPlayback();
             }
           }}
-          disablePrevious={currentSurahNumber <= 1}
-          disableNext={currentSurahNumber >= 114}
+          disablePrevious={disablePrevious}
+          disableNext={disableNext}
         />
         <AudioSelectors
           recitationLanguage={recitationLanguage}
