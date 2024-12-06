@@ -46,11 +46,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onError: () => {
       handleAudioError(audioRef.current);
       
-      // Log current state for debugging
-      console.log("- Current reciter:", selectedReciter);
-      console.log("- Current language:", recitationLanguage);
-      console.log("- Current verse number:", verses[currentVerseIndex]?.number);
-      
       if (recitationLanguage === "english") {
         toast.error("English audio not available", {
           description: "English translation audio is not currently available. Playing Arabic recitation with English text translation.",
@@ -104,7 +99,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       toast.error("Reciter selection is only available for Arabic recitation");
       return;
     }
-    console.log("Changing reciter to:", value);
     setSelectedReciter(value);
     localStorage.setItem("selectedReciter", value);
     resetAudio();
@@ -115,9 +109,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const handleLanguageChange = (value: string) => {
-    console.log("Changing language to:", value);
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
+    
+    // Stop any ongoing audio or TTS
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
     stopSpeaking();
     
     if (value === "english") {
@@ -125,8 +123,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         description: "Playing English translation using text-to-speech technology.",
       });
       setSelectedReciter("ar.alafasy");
-      // Start TTS for current verse
-      if (verses[currentVerseIndex]?.translation) {
+      // Start TTS for current verse if playing
+      if (isPlaying && verses[currentVerseIndex]?.translation) {
         speak(verses[currentVerseIndex].translation, playNextVerse);
       }
     } else {
@@ -139,6 +137,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Handle TTS for English mode
   useEffect(() => {
     if (recitationLanguage === "english" && isPlaying) {
+      // Stop Arabic audio if playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       if (verses[currentVerseIndex]?.translation) {
         speak(verses[currentVerseIndex].translation, playNextVerse);
       }
