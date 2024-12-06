@@ -22,7 +22,6 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
     setIsLoading(false);
     setIsPlaying(false);
 
-    // Log debugging information
     if (audioRef.current) {
       console.log("Current audio URL:", audioRef.current.src);
       console.log("Audio ready state:", audioRef.current.readyState);
@@ -39,14 +38,7 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
       }
     }
 
-    toast.error(errorMessage, {
-      description: "You can try selecting a different reciter or refreshing the page.",
-      action: {
-        label: "Retry",
-        onClick: () => retryPlayback(),
-      },
-    });
-
+    toast.error(errorMessage);
     if (onError) onError();
   };
 
@@ -128,10 +120,7 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
       }
     };
 
-    const handleLoadStart = () => {
-      setIsLoading(true);
-    };
-
+    const handleLoadStart = () => setIsLoading(true);
     const handleEnded = () => {
       setIsPlaying(false);
       playNextVerse();
@@ -159,5 +148,6 @@ export const useAudioPlayer = ({ verses, onVerseChange, onError }: UseAudioPlaye
     resetAudio,
     playNextVerse,
     retryPlayback,
+    setIsPlaying
   };
 };

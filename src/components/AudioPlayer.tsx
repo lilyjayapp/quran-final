@@ -5,7 +5,8 @@ import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import AudioControls from "./AudioControls";
 import AudioLanguageSelect from "./audio/AudioLanguageSelect";
 import ReciterSelect from "./audio/ReciterSelect";
-import { getAudioUrl, handleAudioError } from "@/utils/audioUtils";
+import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
+import { getAudioUrl } from "@/utils/audioUtils";
 import { speak, stopSpeaking } from "@/utils/ttsUtils";
 
 interface AudioPlayerProps {
@@ -45,73 +46,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     onVerseChange,
     onError: () => {
-      handleAudioError(audioRef.current);
-      
       if (recitationLanguage === "english") {
         toast.error("English audio not available", {
           description: "English translation audio is not currently available. Playing English text-to-speech.",
-          action: {
-            label: "Switch to Arabic",
-            onClick: () => {
-              setRecitationLanguage("arabic");
-              localStorage.setItem("recitationLanguage", "arabic");
-              setSelectedReciter("ar.alafasy");
-              localStorage.setItem("selectedReciter", "ar.alafasy");
-              setTimeout(retryPlayback, 500);
-            },
-          },
         });
       } else {
         toast.error("Audio not available", {
           description: "Please try selecting a different reciter.",
-          action: {
-            label: "Try Default Reciter",
-            onClick: () => {
-              setSelectedReciter("ar.alafasy");
-              localStorage.setItem("selectedReciter", "ar.alafasy");
-              setTimeout(retryPlayback, 500);
-            },
-          },
         });
       }
     }
   });
-
-  // Stop TTS and audio when component unmounts or language changes
-  useEffect(() => {
-    return () => {
-      stopSpeaking();
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    };
-  }, [recitationLanguage]);
-
-  const navigateToSurah = (direction: "next" | "previous") => {
-    const nextSurahNumber =
-      direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
-
-    if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
-      resetAudio();
-      stopSpeaking();
-      navigate(`/surah/${nextSurahNumber}`);
-    }
-  };
-
-  const handleReciterChange = (value: string) => {
-    if (recitationLanguage === "english") {
-      toast.error("Reciter selection is only available for Arabic recitation");
-      return;
-    }
-    setSelectedReciter(value);
-    localStorage.setItem("selectedReciter", value);
-    resetAudio();
-    stopSpeaking();
-    toast.info("Reciter changed", {
-      description: "The audio will restart with the new reciter.",
-    });
-  };
 
   const playEnglishTranslation = (startFromIndex: number = currentVerseIndex) => {
     if (startFromIndex >= verses.length) {
@@ -120,7 +65,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
 
     speak(verses[startFromIndex].translation, () => {
-      // After current verse ends, automatically play next verse
       if (isPlaying && startFromIndex < verses.length - 1) {
         playEnglishTranslation(startFromIndex + 1);
       } else if (startFromIndex >= verses.length - 1) {
@@ -140,9 +84,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     stopSpeaking();
     
     if (value === "english") {
-      toast.info("English audio using text-to-speech", {
-        description: "Playing English translation using text-to-speech technology.",
-      });
+      toast.info("English audio using text-to-speech");
       setSelectedReciter("ar.alafasy");
       if (isPlaying) {
         playEnglishTranslation();
@@ -154,7 +96,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Handle TTS for English mode
+  const navigateToSurah = (direction: "next" | "previous") => {
+    const nextSurahNumber =
+      direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
+
+    if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
+      resetAudio();
+      stopSpeaking();
+      navigate(`/surah/${nextSurahNumber}`);
+    }
+  };
+
   useEffect(() => {
     if (recitationLanguage === "english" && isPlaying) {
       if (audioRef.current) {
@@ -164,6 +116,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       playEnglishTranslation();
     }
   }, [currentVerseIndex, recitationLanguage, isPlaying]);
+
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [recitationLanguage]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
@@ -186,14 +148,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               resetAudio();
               stopSpeaking();
             }}
-            onPrevious={() => {
-              stopSpeaking();
-              navigateToSurah("previous");
-            }}
-            onNext={() => {
-              stopSpeaking();
-              navigateToSurah("next");
-            }}
+            onPrevious={() => navigateToSurah("previous")}
+            onNext={() => navigateToSurah("next")}
             onRetry={() => {
               if (recitationLanguage === "english") {
                 playEnglishTranslation();
@@ -211,13 +167,20 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           />
           <ReciterSelect
             value={selectedReciter}
-            onChange={handleReciterChange}
+            onChange={(value) => {
+              if (recitationLanguage === "english") {
+                toast.error("Reciter selection is only available for Arabic recitation");
+                return;
+              }
+              setSelectedReciter(value);
+              localStorage.setItem("selectedReciter", value);
+              resetAudio();
+              stopSpeaking();
+            }}
             disabled={isLoading || recitationLanguage === "english"}
           />
         </div>
-        <div className="text-sm text-gray-600">
-          {verses[currentVerseIndex]?.translation}
-        </div>
+        <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       </div>
       {recitationLanguage === "arabic" && (
         <audio
