@@ -12,7 +12,7 @@ interface AudioTransitionHandlerProps {
   verses: { number: number; translation: string; }[];
 }
 
-const AudioTransitionHandler: React.FC<AudioTransitionHandlerProps> = ({
+const AudioTransitionHandler = ({
   audioRef,
   recitationLanguage,
   isPlaying,
@@ -20,9 +20,19 @@ const AudioTransitionHandler: React.FC<AudioTransitionHandlerProps> = ({
   playTranslations,
   currentVerseIndex,
   verses
-}) => {
+}: AudioTransitionHandlerProps) => {
   const handleNextVerse = async () => {
-    console.log("Playing next verse");
+    console.log("Playing next verse:", {
+      currentVerseIndex,
+      recitationLanguage,
+      isPlaying
+    });
+    
+    if (!isPlaying) {
+      console.log("Playback stopped, not continuing to next verse");
+      return;
+    }
+
     setIsPlaying(true);
     
     if (recitationLanguage === "ar.alafasy" && audioRef.current) {
@@ -31,7 +41,7 @@ const AudioTransitionHandler: React.FC<AudioTransitionHandlerProps> = ({
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         await audioRef.current.play();
-        console.log("Started playing next verse");
+        console.log("Started playing next verse audio");
       } catch (error) {
         console.error("Error playing next verse:", error);
         if (error instanceof Error && 
@@ -52,7 +62,13 @@ const AudioTransitionHandler: React.FC<AudioTransitionHandlerProps> = ({
     }
   };
 
-  return null; // This is a logic-only component
+  React.useEffect(() => {
+    if (isPlaying) {
+      handleNextVerse();
+    }
+  }, [currentVerseIndex]);
+
+  return null;
 };
 
 export default AudioTransitionHandler;

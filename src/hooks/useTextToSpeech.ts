@@ -22,8 +22,17 @@ export const useTextToSpeech = ({
   language,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
-    console.log("Starting text-to-speech playback in language:", language);
-    if (!verses || verses.length === 0) return;
+    console.log("Starting text-to-speech playback:", {
+      currentVerseIndex,
+      totalVerses: verses.length,
+      language,
+      isPlaying
+    });
+
+    if (!verses || verses.length === 0) {
+      console.error("No verses available for playback");
+      return;
+    }
     
     const currentVerse = verses[currentVerseIndex];
     if (!currentVerse) {
@@ -31,23 +40,15 @@ export const useTextToSpeech = ({
       return;
     }
 
-    console.log("Speaking verse:", currentVerse.number, "in language:", language);
-    
     try {
       if (onVerseChange) {
         onVerseChange(currentVerse.number);
       }
       
-      await new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         speak(currentVerse.translation, () => {
           console.log("Finished speaking verse:", currentVerse.number);
-          if (currentVerseIndex < verses.length - 1) {
-            setIsPlaying(true);
-            resolve();
-          } else {
-            setIsPlaying(false);
-            resolve();
-          }
+          resolve();
         }, language);
       });
     } catch (error) {

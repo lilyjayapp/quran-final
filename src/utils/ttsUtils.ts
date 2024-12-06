@@ -24,6 +24,8 @@ const languageMap: { [key: string]: string } = {
 };
 
 export const speak = (text: string, onEnd?: () => void, language: string = 'en.asad') => {
+  console.log('Starting speech synthesis:', { text, language });
+  
   stopSpeaking();
   
   if (!speechSynthesis) {
@@ -32,7 +34,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
   }
 
   const browserLanguage = languageMap[language] || 'en-US';
-  console.log('Using language for speech:', browserLanguage);
+  console.log('Using browser language:', browserLanguage);
 
   currentUtterance = new SpeechSynthesisUtterance(text);
   currentUtterance.lang = browserLanguage;
@@ -40,6 +42,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
 
   if (onEnd) {
     currentUtterance.onend = () => {
+      console.log('Speech synthesis ended');
       onEnd();
     };
   }
@@ -52,6 +55,7 @@ export const speak = (text: string, onEnd?: () => void, language: string = 'en.a
 };
 
 export const stopSpeaking = () => {
+  console.log('Stopping speech synthesis');
   if (speechSynthesis) {
     speechSynthesis.cancel();
   }
