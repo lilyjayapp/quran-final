@@ -40,32 +40,23 @@ const AudioTransitionHandler = ({
       return;
     }
 
-    setIsPlaying(true);
-    
-    if (recitationLanguage === "ar.alafasy" && audioRef.current) {
-      try {
+    try {
+      if (recitationLanguage === "ar.alafasy" && audioRef.current) {
         if (isMobileDevice()) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         await audioRef.current.play();
         console.log("Started playing next verse audio");
-      } catch (error) {
-        console.error("Error playing next verse:", error);
-        if (error instanceof Error && 
-            error.name !== "NotAllowedError" && 
-            !isMobileDevice()) {
-          toast.error("Error playing audio");
-        }
-        setIsPlaying(false);
-      }
-    } else if (recitationLanguage !== "ar.alafasy") {
-      try {
+      } else if (recitationLanguage !== "ar.alafasy") {
         await playTranslations();
         console.log("Started playing next translation");
-      } catch (error) {
-        console.error("Error playing next translation:", error);
-        setIsPlaying(false);
       }
+    } catch (error) {
+      console.error("Error playing next verse/translation:", error);
+      if (!isMobileDevice()) {
+        toast.error("Error playing audio/translation");
+      }
+      setIsPlaying(false);
     }
   };
 
