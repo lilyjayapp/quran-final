@@ -34,7 +34,7 @@ const SurahPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-xl">Loading Surah...</div>
       </div>
     );
@@ -42,15 +42,15 @@ const SurahPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center pt-32">
         <div className="text-xl text-red-500">Error loading Surah</div>
       </div>
     );
   }
 
   return (
-    <div className="container py-8 pb-32">
-      <div className="flex justify-between mb-4">
+    <div className="container pt-32 pb-16">
+      <div className="flex justify-between items-center mb-8">
         <Button
           variant="outline"
           onClick={() => navigate('/')}
