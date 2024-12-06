@@ -5,8 +5,7 @@ import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useVerseProgression } from "@/hooks/useVerseProgression";
 import AudioControls from "./AudioControls";
-import AudioLanguageSelect from "./audio/AudioLanguageSelect";
-import ReciterSelect from "./audio/ReciterSelect";
+import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
@@ -67,10 +66,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   });
 
   const handlePlayPause = async () => {
-    console.log("Play/Pause clicked");
-    console.log("Current language:", recitationLanguage);
-    console.log("Current playing state:", isPlaying);
-
     if (recitationLanguage !== "ar.alafasy") {
       if (isPlaying) {
         stopTranslations();
@@ -85,7 +80,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const handleLanguageChange = (value: string) => {
-    console.log("Language changed to:", value);
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
     
@@ -130,7 +124,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   useEffect(() => {
     return () => {
-      console.log("Cleanup: stopping all audio");
       stopSpeaking();
       if (audioRef.current) {
         audioRef.current.pause();
@@ -143,7 +136,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const handleAudioEnded = () => {
     const hasMoreVerses = playNextVerse();
     if (hasMoreVerses && recitationLanguage === "ar.alafasy") {
-      // Continue playing if there are more verses
       setIsPlaying(true);
       if (audioRef.current) {
         audioRef.current.play().catch(error => {
@@ -156,16 +148,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.crossOrigin = "anonymous";
-    }
-  }, []);
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 sm:p-4">
-      <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
+      <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
           <AudioControls
             isPlaying={isPlaying}
             isLoading={isLoading}
@@ -189,27 +175,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             disablePrevious={currentSurahNumber <= 1}
             disableNext={currentSurahNumber >= 114}
           />
-          <div className="flex flex-wrap items-center gap-2">
-            <AudioLanguageSelect
-              value={recitationLanguage}
-              onChange={handleLanguageChange}
-              disabled={isLoading}
-            />
-            <ReciterSelect
-              value={selectedReciter}
-              onChange={(value) => {
-                if (recitationLanguage !== "ar.alafasy") {
-                  toast.error("Reciter selection is only available for Arabic recitation");
-                  return;
-                }
-                setSelectedReciter(value);
-                localStorage.setItem("selectedReciter", value);
-                resetAudio();
-                stopSpeaking();
-              }}
-              disabled={isLoading || recitationLanguage !== "ar.alafasy"}
-            />
-          </div>
+          <AudioSelectors
+            recitationLanguage={recitationLanguage}
+            selectedReciter={selectedReciter}
+            onLanguageChange={handleLanguageChange}
+            onReciterChange={(value) => {
+              if (recitationLanguage !== "ar.alafasy") {
+                toast.error("Reciter selection is only available for Arabic recitation");
+                return;
+              }
+              setSelectedReciter(value);
+              localStorage.setItem("selectedReciter", value);
+              resetAudio();
+              stopSpeaking();
+            }}
+            isLoading={isLoading}
+          />
         </div>
         <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       </div>
