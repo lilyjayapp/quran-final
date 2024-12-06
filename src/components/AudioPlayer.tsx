@@ -163,9 +163,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 sm:p-4">
+      <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <AudioControls
             isPlaying={isPlaying}
             isLoading={isLoading}
@@ -189,25 +189,27 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             disablePrevious={currentSurahNumber <= 1}
             disableNext={currentSurahNumber >= 114}
           />
-          <AudioLanguageSelect
-            value={recitationLanguage}
-            onChange={handleLanguageChange}
-            disabled={isLoading}
-          />
-          <ReciterSelect
-            value={selectedReciter}
-            onChange={(value) => {
-              if (recitationLanguage !== "ar.alafasy") {
-                toast.error("Reciter selection is only available for Arabic recitation");
-                return;
-              }
-              setSelectedReciter(value);
-              localStorage.setItem("selectedReciter", value);
-              resetAudio();
-              stopSpeaking();
-            }}
-            disabled={isLoading || recitationLanguage !== "ar.alafasy"}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <AudioLanguageSelect
+              value={recitationLanguage}
+              onChange={handleLanguageChange}
+              disabled={isLoading}
+            />
+            <ReciterSelect
+              value={selectedReciter}
+              onChange={(value) => {
+                if (recitationLanguage !== "ar.alafasy") {
+                  toast.error("Reciter selection is only available for Arabic recitation");
+                  return;
+                }
+                setSelectedReciter(value);
+                localStorage.setItem("selectedReciter", value);
+                resetAudio();
+                stopSpeaking();
+              }}
+              disabled={isLoading || recitationLanguage !== "ar.alafasy"}
+            />
+          </div>
         </div>
         <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       </div>
