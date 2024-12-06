@@ -61,15 +61,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsPlaying
   });
 
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
+    console.log("Play/Pause clicked");
+    console.log("Current language:", recitationLanguage);
+    console.log("Current playing state:", isPlaying);
+
     if (recitationLanguage === "english") {
       if (isPlaying) {
         stopTranslations();
+        setIsPlaying(false);
       } else {
-        playTranslations();
+        setIsPlaying(true);
+        await playTranslations();
       }
+    } else {
+      await togglePlay();
     }
-    togglePlay();
   };
 
   const handleLanguageChange = (value: string) => {
@@ -81,13 +88,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       audioRef.current.currentTime = 0;
     }
     stopSpeaking();
+    setIsPlaying(false);
     
     if (value === "english") {
       toast.info("English audio using text-to-speech");
       setSelectedReciter("ar.alafasy");
-      if (isPlaying) {
-        playTranslations();
-      }
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
       setSelectedReciter(savedReciter);
@@ -118,11 +123,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   useEffect(() => {
     return () => {
+      console.log("Cleanup: stopping all audio");
       stopSpeaking();
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
+      setIsPlaying(false);
     };
   }, [recitationLanguage]);
 
@@ -137,14 +144,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             onReset={() => {
               resetAudio();
               stopSpeaking();
+              setIsPlaying(false);
             }}
             onPrevious={() => navigateToSurah("previous")}
             onNext={() => navigateToSurah("next")}
-            onRetry={() => {
+            onRetry={async () => {
               if (recitationLanguage === "english") {
-                playTranslations();
+                setIsPlaying(true);
+                await playTranslations();
               } else {
-                retryPlayback();
+                await retryPlayback();
               }
             }}
             disablePrevious={currentSurahNumber <= 1}

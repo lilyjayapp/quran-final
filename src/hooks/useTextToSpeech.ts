@@ -19,13 +19,18 @@ export const useTextToSpeech = ({
   setIsPlaying,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
+    console.log("Starting text-to-speech playback");
     if (!verses || verses.length === 0) return;
     
     const translations = verses.map(verse => verse.translation);
     let currentIndex = currentVerseIndex;
 
     const speakNextVerse = () => {
-      if (!isPlaying) return;
+      console.log("Speaking verse:", currentIndex);
+      if (!isPlaying) {
+        console.log("Playback stopped");
+        return;
+      }
       
       if (currentIndex < translations.length) {
         if (onVerseChange) {
@@ -37,6 +42,7 @@ export const useTextToSpeech = ({
           if (currentIndex < translations.length && isPlaying) {
             speakNextVerse();
           } else if (currentIndex >= translations.length) {
+            console.log("Reached end of translations");
             setIsPlaying(false);
             currentIndex = 0;
             if (onVerseChange) {
