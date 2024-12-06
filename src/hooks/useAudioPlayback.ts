@@ -11,10 +11,9 @@ interface UseAudioPlaybackProps {
   onError?: () => void;
 }
 
-export const useAudioPlayback = ({ verses, onVerseChange, onError }: UseAudioPlaybackProps) => {
+export const useAudioPlayback = ({ onError }: UseAudioPlaybackProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleAudioError = (error: any) => {
@@ -76,10 +75,6 @@ export const useAudioPlayback = ({ verses, onVerseChange, onError }: UseAudioPla
         audioRef.current.pause();
         setIsPlaying(false);
       }
-      
-      if (onVerseChange) {
-        onVerseChange(verses[currentVerseIndex].number);
-      }
     } catch (error) {
       console.error("Error in togglePlay:", error);
       handleAudioError(error);
@@ -94,27 +89,6 @@ export const useAudioPlayback = ({ verses, onVerseChange, onError }: UseAudioPla
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       setIsPlaying(false);
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
-    }
-  };
-
-  const playNextVerse = () => {
-    console.log("Playing next verse");
-    if (currentVerseIndex < verses.length - 1) {
-      const nextIndex = currentVerseIndex + 1;
-      setCurrentVerseIndex(nextIndex);
-      if (onVerseChange) {
-        onVerseChange(verses[nextIndex].number);
-      }
-    } else {
-      setIsPlaying(false);
-      setCurrentVerseIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
     }
   };
 
@@ -135,33 +109,23 @@ export const useAudioPlayback = ({ verses, onVerseChange, onError }: UseAudioPla
       setIsLoading(true);
     };
 
-    const handleEnded = () => {
-      console.log("Audio ended");
-      setIsPlaying(false);
-      playNextVerse();
-    };
-
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('error', (e) => handleAudioError(e));
 
     return () => {
       audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', (e) => handleAudioError(e));
     };
-  }, [isPlaying, verses, currentVerseIndex]);
+  }, [isPlaying]);
 
   return {
     isPlaying,
     isLoading,
-    currentVerseIndex,
     audioRef,
     togglePlay,
     resetAudio,
-    playNextVerse,
     retryPlayback,
     setIsPlaying
   };

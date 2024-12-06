@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
+import { useVerseProgression } from "@/hooks/useVerseProgression";
 import AudioControls from "./AudioControls";
 import AudioLanguageSelect from "./audio/AudioLanguageSelect";
 import ReciterSelect from "./audio/ReciterSelect";
@@ -33,14 +34,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   );
   const navigate = useNavigate();
 
+  const { currentVerseIndex, playNextVerse, resetVerse } = useVerseProgression({
+    totalVerses: verses.length,
+    onVerseChange,
+  });
+
   const {
     isPlaying,
     isLoading,
-    currentVerseIndex,
     audioRef,
     togglePlay,
     resetAudio,
-    playNextVerse,
     retryPlayback,
     setIsPlaying
   } = useAudioPlayback({ 
@@ -85,15 +89,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
     
-    // Stop any current playback
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     stopSpeaking();
     setIsPlaying(false);
+    resetVerse();
     
-    // Update reciter if needed
     if (value !== "ar.alafasy") {
       toast.info(`Switched to ${value} recitation`);
       setSelectedReciter("ar.alafasy");
@@ -137,6 +140,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     };
   }, []);
 
+  const handleAudioEnded = () => {
+    const hasMoreVerses = playNextVerse();
+    if (hasMoreVerses && recitationLanguage === "ar.alafasy") {
+      // Continue playing if there are more verses
+      setIsPlaying(true);
+      if (audioRef.current) {
+        audioRef.current.play().catch(error => {
+          console.error("Error playing next verse:", error);
+          toast.error("Error playing audio");
+        });
+      }
+    } else {
+      setIsPlaying(false);
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
       <div className="container mx-auto flex items-center justify-between">
@@ -148,6 +167,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             onReset={() => {
               resetAudio();
               stopSpeaking();
+              resetVerse();
               setIsPlaying(false);
             }}
             onPrevious={() => navigateToSurah("previous")}
@@ -189,7 +209,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <audio
           ref={audioRef}
           src={getAudioUrl(verses[currentVerseIndex]?.number, recitationLanguage, selectedReciter)}
-          onEnded={playNextVerse}
+          onEnded={handleAudioEnded}
           preload="auto"
           crossOrigin="anonymous"
         />
