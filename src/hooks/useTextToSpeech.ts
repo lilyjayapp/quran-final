@@ -21,7 +21,7 @@ export const useTextToSpeech = ({
   language,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
-    console.log("Starting translations playback:", {
+    console.log("Starting playTranslations:", {
       currentVerseIndex,
       totalVerses: verses.length,
       language
@@ -74,8 +74,13 @@ export const useTextToSpeech = ({
     }
   };
 
+  const stopTranslations = () => {
+    console.log("Stopping translations");
+    stopSpeaking();
+  };
+
   return {
     playTranslations,
-    stopTranslations: stopSpeaking
+    stopTranslations
   };
 };

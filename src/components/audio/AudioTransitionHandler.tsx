@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { isMobileDevice } from "@/utils/deviceUtils";
 import { toast } from "sonner";
 
@@ -46,11 +46,10 @@ const AudioTransitionHandler = ({
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         await audioRef.current.play();
-        console.log("Started playing next verse audio");
       } else if (recitationLanguage !== "ar.alafasy") {
         console.log("Starting translation playback");
+        setIsPlaying(true); // Ensure playing state is true before starting
         await playTranslations();
-        // Don't set isPlaying to false here, let the next verse trigger naturally
       }
     } catch (error) {
       console.error("Error playing next verse/translation:", error);
@@ -61,7 +60,7 @@ const AudioTransitionHandler = ({
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     console.log("AudioTransitionHandler effect triggered:", {
       isPlaying,
       currentVerseIndex
