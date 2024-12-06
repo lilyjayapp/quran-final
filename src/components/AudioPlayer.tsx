@@ -27,7 +27,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   currentSurahNumber,
   onVerseChange,
 }) => {
-  const [recitationLanguage, setRecitationLanguage] = useState("arabic");
+  const [recitationLanguage, setRecitationLanguage] = useState(() => 
+    localStorage.getItem("recitationLanguage") || "arabic"
+  );
   const [selectedReciter, setSelectedReciter] = useState(() =>
     localStorage.getItem("selectedReciter") || "ar.alafasy"
   );
@@ -51,17 +53,31 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       console.log("- Current language:", recitationLanguage);
       console.log("- Current verse number:", verses[currentVerseIndex]?.number);
       
-      toast.error("Audio not available", {
-        description: "Please try switching to Arabic recitation or selecting a different reciter.",
-        action: {
-          label: "Switch to Arabic",
-          onClick: () => {
-            setRecitationLanguage("arabic");
-            setSelectedReciter("ar.alafasy");
-            setTimeout(retryPlayback, 500);
+      if (recitationLanguage === "english") {
+        toast.error("English audio not available", {
+          description: "English translation audio is currently unavailable. Playing Arabic recitation.",
+          action: {
+            label: "Switch to Arabic",
+            onClick: () => {
+              setRecitationLanguage("arabic");
+              localStorage.setItem("recitationLanguage", "arabic");
+              setSelectedReciter("ar.alafasy");
+              setTimeout(retryPlayback, 500);
+            },
           },
-        },
-      });
+        });
+      } else {
+        toast.error("Audio not available", {
+          description: "Please try selecting a different reciter.",
+          action: {
+            label: "Try Default Reciter",
+            onClick: () => {
+              setSelectedReciter("ar.alafasy");
+              setTimeout(retryPlayback, 500);
+            },
+          },
+        });
+      }
     }
   });
 
@@ -78,8 +94,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const getAudioUrl = (verseNumber: number) => {
     if (!verseNumber) return "";
     
-    // Always use Arabic recitation URL since English audio is not available
-    const url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
+    let url;
+    if (recitationLanguage === "english") {
+      url = `https://cdn.islamic.network/quran/audio-translations/128/en.walk/${verseNumber}.mp3`;
+    } else {
+      url = `https://cdn.islamic.network/quran/audio/128/${selectedReciter}/${verseNumber}.mp3`;
+    }
     
     console.log("Generated audio URL:", url);
     console.log("Audio settings:", {
@@ -108,11 +128,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const handleLanguageChange = (value: string) => {
     console.log("Changing language to:", value);
     setRecitationLanguage(value);
+    localStorage.setItem("recitationLanguage", value);
     
     if (value === "english") {
-      setSelectedReciter("ar.alafasy");
-      toast.info("Translation Language Changed", {
-        description: "Note: The audio will remain in Arabic while showing English translation.",
+      setSelectedReciter("en.walk");
+      toast.info("Switching to English", {
+        description: "Note: If English audio is unavailable, it will automatically fallback to Arabic recitation.",
       });
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
@@ -143,17 +164,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             disabled={isLoading}
           >
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select translation" />
+              <SelectValue placeholder="Select audio language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="arabic">Arabic Translation</SelectItem>
-              <SelectItem value="english">English Translation</SelectItem>
+              <SelectItem value="arabic">Arabic Recitation</SelectItem>
+              <SelectItem value="english">English Recitation</SelectItem>
             </SelectContent>
           </Select>
           <Select
             value={selectedReciter}
             onValueChange={handleReciterChange}
-            disabled={isLoading || recitationLanguage !== "arabic"}
+            disabled={isLoading || recitationLanguage === "english"}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select reciter" />
