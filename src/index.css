@@ -6,6 +6,8 @@
 
 body {
   @apply bg-background text-textPrimary;
+  /* Add padding to account for fixed header */
+  padding-top: 160px;
 }
 
 .arabic-text {
