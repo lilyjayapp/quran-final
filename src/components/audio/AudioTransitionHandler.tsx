@@ -22,20 +22,11 @@ const AudioTransitionHandler = ({
   verses
 }: AudioTransitionHandlerProps) => {
   const handleNextVerse = async () => {
-    console.log("Playing next verse:", {
-      currentVerseIndex,
-      recitationLanguage,
-      isPlaying,
-      totalVerses: verses.length
-    });
-    
     if (!isPlaying) {
-      console.log("Playback stopped, not continuing to next verse");
       return;
     }
 
     if (currentVerseIndex >= verses.length) {
-      console.log("Reached end of verses");
       setIsPlaying(false);
       return;
     }
@@ -47,14 +38,9 @@ const AudioTransitionHandler = ({
         }
         await audioRef.current.play();
       } else if (recitationLanguage !== "ar.alafasy") {
-        console.log("Starting translation playback");
-        await playTranslations().catch(error => {
-          console.error("Translation playback failed:", error);
-          throw error;
-        });
+        await playTranslations();
       }
     } catch (error) {
-      console.error("Error playing next verse/translation:", error);
       if (!isMobileDevice()) {
         toast.error("Error playing audio/translation");
       }
@@ -67,10 +53,6 @@ const AudioTransitionHandler = ({
 
     const playNextVerseIfMounted = async () => {
       if (isMounted && isPlaying) {
-        console.log("AudioTransitionHandler effect triggered:", {
-          isPlaying,
-          currentVerseIndex
-        });
         await handleNextVerse();
       }
     };

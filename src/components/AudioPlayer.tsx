@@ -79,14 +79,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   });
 
   const handlePlayPause = async () => {
-    console.log('handlePlayPause called:', { 
-      recitationLanguage, 
-      isPlaying,
-      currentVerseIndex,
-      selectedReciter,
-      audioUrl: audioRef.current?.src
-    });
-
     if (recitationLanguage !== "ar.alafasy") {
       if (isPlaying) {
         stopTranslations();
@@ -96,20 +88,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         await playTranslations();
       }
     } else {
-      console.log('Attempting to toggle Arabic audio playback');
       await togglePlay();
     }
   };
 
   const handleAudioEnded = async () => {
-    console.log("Audio ended:", {
-      currentVerseIndex,
-      totalVerses: verses.length,
-      recitationLanguage,
-      isPlaying,
-      audioUrl: audioRef.current?.src
-    });
-
     startTransition(() => {
       const hasMoreVerses = playNextVerse();
       
@@ -124,21 +107,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           verses
         });
       } else {
-        console.log("No more verses to play");
         setIsPlaying(false);
       }
     });
   };
 
   useEffect(() => {
-    console.log('Verse changed effect:', { 
-      currentVerseIndex, 
-      recitationLanguage, 
-      isPlaying,
-      totalVerses: verses.length,
-      audioUrl: audioRef.current?.src
-    });
-
     if (recitationLanguage !== "ar.alafasy" && isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
