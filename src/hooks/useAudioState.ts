@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isMobileDevice } from "@/utils/deviceUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
+import { toast } from "sonner";
 
 export const useAudioState = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);

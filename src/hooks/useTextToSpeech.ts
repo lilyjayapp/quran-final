@@ -41,7 +41,13 @@ export const useTextToSpeech = ({
       await new Promise<void>((resolve, reject) => {
         speak(currentVerse.translation, () => {
           console.log("Finished speaking verse:", currentVerse.number);
-          resolve();
+          if (currentVerseIndex < verses.length - 1) {
+            setIsPlaying(true);
+            resolve();
+          } else {
+            setIsPlaying(false);
+            resolve();
+          }
         }, language);
       });
     } catch (error) {

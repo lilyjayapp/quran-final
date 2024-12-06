@@ -10,9 +10,9 @@ import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import AudioHandler from "./audio/AudioHandler";
 import AudioTransitionHandler from "./audio/AudioTransitionHandler";
-import AudioNavigation from "./audio/AudioNavigation";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
+import { isMobileDevice } from "@/utils/deviceUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -72,12 +72,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     language: recitationLanguage
   });
 
-  const { navigateToSurah } = AudioNavigation({
+  const navigation = AudioNavigation({
     currentSurahNumber,
     resetAudio,
   });
 
   const handlePlayPause = async () => {
+    console.log('handlePlayPause called:', { recitationLanguage, isPlaying });
     if (recitationLanguage !== "ar.alafasy") {
       if (isPlaying) {
         stopTranslations();
@@ -114,6 +115,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   useEffect(() => {
+    console.log('Verse changed effect:', { 
+      currentVerseIndex, 
+      recitationLanguage, 
+      isPlaying,
+      totalVerses: verses.length 
+    });
+
     if (recitationLanguage !== "ar.alafasy" && isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -147,8 +155,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             resetVerse();
             setIsPlaying(false);
           }}
-          onPrevious={() => navigateToSurah("previous")}
-          onNext={() => navigateToSurah("next")}
+          onPrevious={() => navigation.navigateToSurah("previous")}
+          onNext={() => navigation.navigateToSurah("next")}
           onRetry={async () => {
             if (recitationLanguage !== "ar.alafasy") {
               setIsPlaying(true);

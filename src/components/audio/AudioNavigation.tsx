@@ -1,32 +1,26 @@
 import React from 'react';
-import { useNavigate } from "react-router-dom";
-import { stopSpeaking } from "@/utils/ttsUtils";
+import { useNavigate } from 'react-router-dom';
 
 interface AudioNavigationProps {
   currentSurahNumber: number;
   resetAudio: () => void;
 }
 
-const AudioNavigation: React.FC<AudioNavigationProps> = ({
-  currentSurahNumber,
-  resetAudio,
-}) => {
+const AudioNavigation = ({ currentSurahNumber, resetAudio }: AudioNavigationProps) => {
   const navigate = useNavigate();
 
   const navigateToSurah = (direction: "next" | "previous") => {
-    const nextSurahNumber =
-      direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
+    const nextSurahNumber = direction === "next" 
+      ? currentSurahNumber + 1 
+      : currentSurahNumber - 1;
 
-    if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
-      resetAudio();
-      stopSpeaking();
-      navigate(`/surah/${nextSurahNumber}`);
-    }
+    if (nextSurahNumber < 1 || nextSurahNumber > 114) return;
+
+    resetAudio();
+    navigate(`/surah/${nextSurahNumber}`);
   };
 
-  return {
-    navigateToSurah,
-  };
+  return { navigateToSurah };
 };
 
 export default AudioNavigation;
