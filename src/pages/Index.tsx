@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { reciters } from "../utils/reciters";
 import { languages } from "../utils/languages";
 import { useToast } from "../components/ui/use-toast";
-import AudioControls from "../components/AudioControls";
 
 const Index = () => {
   const { data: surahs, isLoading, error } = useSurahs();
@@ -80,20 +79,6 @@ const Index = () => {
             ))}
           </SelectContent>
         </Select>
-
-        <div className="flex justify-center mt-4">
-          <AudioControls
-            isPlaying={false}
-            isLoading={false}
-            onPlayPause={() => {}}
-            onReset={() => {}}
-            onPrevious={() => {}}
-            onNext={() => {}}
-            onRetry={() => {}}
-            disablePrevious={true}
-            disableNext={true}
-          />
-        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
