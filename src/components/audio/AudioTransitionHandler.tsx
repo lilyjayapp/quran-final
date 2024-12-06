@@ -48,8 +48,6 @@ const AudioTransitionHandler = ({
         await audioRef.current.play();
       } else if (recitationLanguage !== "ar.alafasy") {
         console.log("Starting translation playback");
-        // Set isPlaying to true before starting playback
-        setIsPlaying(true);
         await playTranslations().catch(error => {
           console.error("Translation playback failed:", error);
           throw error;
