@@ -7,8 +7,10 @@ import { useVerseProgression } from "@/hooks/useVerseProgression";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
+import AudioHandler from "./audio/AudioHandler";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
+import { isMobileDevice } from "@/utils/deviceUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -52,7 +54,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange,
     onError: () => {
       // Only show error if we're not transitioning between verses
-      if (!isTransitioning) {
+      // and we're not on a mobile device (to reduce noise)
+      if (!isTransitioning && !isMobileDevice()) {
         toast.error("Audio not available", {
           description: "Please try selecting a different reciter.",
         });
@@ -145,11 +148,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setIsPlaying(true);
       if (audioRef.current) {
         try {
+          // Add a small delay before playing next verse on mobile
+          if (isMobileDevice()) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
           await audioRef.current.play();
         } catch (error) {
           console.error("Error playing next verse:", error);
           // Only show error if it's not a user interaction error
-          if (error instanceof Error && error.name !== "NotAllowedError") {
+          // and we're not on a mobile device
+          if (error instanceof Error && 
+              error.name !== "NotAllowedError" && 
+              !isMobileDevice()) {
             toast.error("Error playing audio");
           }
         }
@@ -157,8 +167,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     } else {
       setIsPlaying(false);
     }
-    // Small delay to prevent false error during transition
-    setTimeout(() => setIsTransitioning(false), 500);
+    // Longer delay for mobile devices before removing transition state
+    setTimeout(() => setIsTransitioning(false), isMobileDevice() ? 1000 : 500);
   };
 
   return (
@@ -208,13 +218,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       </div>
       {recitationLanguage === "ar.alafasy" && (
-        <audio
-          ref={audioRef}
+        <AudioHandler
+          audioRef={audioRef}
           src={getAudioUrl(verses[currentVerseIndex]?.number, recitationLanguage, selectedReciter)}
           onEnded={handleAudioEnded}
-          preload="auto"
-          crossOrigin="anonymous"
-          playsInline // Add this for better iOS support
+          isPlaying={isPlaying}
         />
       )}
     </div>
