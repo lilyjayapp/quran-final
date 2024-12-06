@@ -25,43 +25,30 @@ export const useTextToSpeech = ({
     console.log("Starting text-to-speech playback in language:", language);
     if (!verses || verses.length === 0) return;
     
-    const translations = verses.map(verse => verse.translation);
-    let currentIndex = currentVerseIndex;
+    const currentVerse = verses[currentVerseIndex];
+    if (!currentVerse) {
+      console.error("No verse found at index:", currentVerseIndex);
+      return;
+    }
 
-    const speakNextVerse = () => {
-      console.log("Speaking verse:", currentIndex, "in language:", language);
-      if (!isPlaying) {
-        console.log("Playback stopped");
-        return;
+    console.log("Speaking verse:", currentVerse.number, "in language:", language);
+    
+    try {
+      if (onVerseChange) {
+        onVerseChange(currentVerse.number);
       }
       
-      if (currentIndex < translations.length) {
-        if (onVerseChange) {
-          onVerseChange(verses[currentIndex].number);
-        }
-        
-        speak(translations[currentIndex], () => {
-          currentIndex++;
-          if (currentIndex < translations.length && isPlaying) {
-            speakNextVerse();
-          } else if (currentIndex >= translations.length) {
-            console.log("Reached end of translations");
-            setIsPlaying(false);
-            currentIndex = 0;
-            if (onVerseChange) {
-              onVerseChange(verses[0].number);
-            }
-          }
+      await new Promise<void>((resolve, reject) => {
+        speak(currentVerse.translation, () => {
+          console.log("Finished speaking verse:", currentVerse.number);
+          resolve();
         }, language);
-      }
-    };
-
-    try {
-      speakNextVerse();
+      });
     } catch (error) {
       console.error("Text-to-speech error:", error);
       toast.error("Error playing translation. Please try a different language.");
       setIsPlaying(false);
+      throw error;
     }
   };
 
