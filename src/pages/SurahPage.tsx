@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
@@ -10,6 +10,16 @@ const SurahPage = () => {
   const navigate = useNavigate();
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
   const [currentVerseNumber, setCurrentVerseNumber] = useState<number | null>(null);
+  const verseRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+
+  useEffect(() => {
+    if (currentVerseNumber && verseRefs.current[currentVerseNumber]) {
+      verseRefs.current[currentVerseNumber]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
+  }, [currentVerseNumber]);
 
   if (isLoading) {
     return (
@@ -50,6 +60,7 @@ const SurahPage = () => {
         {surah?.verses.map((verse) => (
           <div 
             key={verse.number} 
+            ref={el => verseRefs.current[verse.number] = el}
             className={`verse-container ${currentVerseNumber === verse.number ? 'bg-primary/10' : ''}`}
           >
             <div className="flex justify-between items-start mb-4">
