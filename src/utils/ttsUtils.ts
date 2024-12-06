@@ -23,7 +23,7 @@ const languageMap: { [key: string]: string } = {
   'ta.tamil': 'ta-IN'
 };
 
-export const speak = (text: string, onEnd?: () => void) => {
+export const speak = (text: string, onEnd?: () => void, language: string = 'en.asad') => {
   stopSpeaking();
   
   if (!speechSynthesis) {
@@ -31,9 +31,7 @@ export const speak = (text: string, onEnd?: () => void) => {
     return;
   }
 
-  const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en.asad';
-  const browserLanguage = languageMap[selectedLanguage] || 'en-US';
-  
+  const browserLanguage = languageMap[language] || 'en-US';
   console.log('Using language for speech:', browserLanguage);
 
   currentUtterance = new SpeechSynthesisUtterance(text);

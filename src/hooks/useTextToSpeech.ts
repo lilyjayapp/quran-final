@@ -10,6 +10,7 @@ interface UseTextToSpeechProps {
   currentVerseIndex: number;
   onVerseChange?: (verseNumber: number) => void;
   setIsPlaying: (playing: boolean) => void;
+  language: string;
 }
 
 export const useTextToSpeech = ({
@@ -18,16 +19,17 @@ export const useTextToSpeech = ({
   currentVerseIndex,
   onVerseChange,
   setIsPlaying,
+  language,
 }: UseTextToSpeechProps) => {
   const playTranslations = async () => {
-    console.log("Starting text-to-speech playback");
+    console.log("Starting text-to-speech playback in language:", language);
     if (!verses || verses.length === 0) return;
     
     const translations = verses.map(verse => verse.translation);
     let currentIndex = currentVerseIndex;
 
     const speakNextVerse = () => {
-      console.log("Speaking verse:", currentIndex);
+      console.log("Speaking verse:", currentIndex, "in language:", language);
       if (!isPlaying) {
         console.log("Playback stopped");
         return;
@@ -50,7 +52,7 @@ export const useTextToSpeech = ({
               onVerseChange(verses[0].number);
             }
           }
-        });
+        }, language);
       }
     };
 

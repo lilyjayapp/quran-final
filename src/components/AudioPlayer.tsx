@@ -26,7 +26,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onVerseChange,
 }) => {
   const [recitationLanguage, setRecitationLanguage] = useState(() => 
-    localStorage.getItem("recitationLanguage") || "arabic"
+    localStorage.getItem("recitationLanguage") || "ar.alafasy"
   );
   const [selectedReciter, setSelectedReciter] = useState(() =>
     localStorage.getItem("selectedReciter") || "ar.alafasy"
@@ -58,7 +58,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     isPlaying,
     currentVerseIndex,
     onVerseChange,
-    setIsPlaying
+    setIsPlaying,
+    language: recitationLanguage
   });
 
   const handlePlayPause = async () => {
@@ -66,7 +67,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     console.log("Current language:", recitationLanguage);
     console.log("Current playing state:", isPlaying);
 
-    if (recitationLanguage === "english") {
+    if (recitationLanguage !== "ar.alafasy") {
       if (isPlaying) {
         stopTranslations();
         setIsPlaying(false);
@@ -80,6 +81,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const handleLanguageChange = (value: string) => {
+    console.log("Language changed to:", value);
     setRecitationLanguage(value);
     localStorage.setItem("recitationLanguage", value);
     
@@ -90,8 +92,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     stopSpeaking();
     setIsPlaying(false);
     
-    if (value === "english") {
-      toast.info("English audio using text-to-speech");
+    if (value !== "ar.alafasy") {
+      toast.info(`Switched to ${value} recitation`);
       setSelectedReciter("ar.alafasy");
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
@@ -112,7 +114,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   useEffect(() => {
-    if (recitationLanguage === "english" && isPlaying) {
+    if (recitationLanguage !== "ar.alafasy" && isPlaying) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -149,7 +151,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             onPrevious={() => navigateToSurah("previous")}
             onNext={() => navigateToSurah("next")}
             onRetry={async () => {
-              if (recitationLanguage === "english") {
+              if (recitationLanguage !== "ar.alafasy") {
                 setIsPlaying(true);
                 await playTranslations();
               } else {
@@ -167,7 +169,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <ReciterSelect
             value={selectedReciter}
             onChange={(value) => {
-              if (recitationLanguage === "english") {
+              if (recitationLanguage !== "ar.alafasy") {
                 toast.error("Reciter selection is only available for Arabic recitation");
                 return;
               }
@@ -176,12 +178,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               resetAudio();
               stopSpeaking();
             }}
-            disabled={isLoading || recitationLanguage === "english"}
+            disabled={isLoading || recitationLanguage !== "ar.alafasy"}
           />
         </div>
         <AudioTranslationDisplay translation={verses[currentVerseIndex]?.translation} />
       </div>
-      {recitationLanguage === "arabic" && (
+      {recitationLanguage === "ar.alafasy" && (
         <audio
           ref={audioRef}
           src={getAudioUrl(verses[currentVerseIndex]?.number, recitationLanguage, selectedReciter)}
