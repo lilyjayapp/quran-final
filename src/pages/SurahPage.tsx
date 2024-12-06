@@ -14,20 +14,35 @@ const SurahPage = () => {
 
   useEffect(() => {
     if (currentVerseNumber && verseRefs.current[currentVerseNumber]) {
-      console.log("Scrolling to verse:", currentVerseNumber);
+      console.log("Attempting to scroll to verse:", currentVerseNumber);
+      console.log("Available verse refs:", Object.keys(verseRefs.current));
       verseRefs.current[currentVerseNumber]?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
+    } else {
+      console.log("Could not scroll - verse ref not found:", currentVerseNumber);
     }
   }, [currentVerseNumber]);
 
   const handleVerseChange = (verseNumber: number) => {
-    console.log("Verse changed to:", verseNumber);
-    // Find the corresponding verse in the current surah
-    const verse = surah?.verses.find(v => v.numberInSurah === verseNumber);
+    console.log("Verse change triggered:", verseNumber);
+    console.log("Current surah verses:", surah?.verses.map(v => ({
+      numberInSurah: v.numberInSurah,
+      number: v.number
+    })));
+    
+    // Try to find the verse both by numberInSurah and absolute number
+    const verse = surah?.verses.find(v => 
+      v.numberInSurah === verseNumber || 
+      v.number === verseNumber
+    );
+
     if (verse) {
+      console.log("Found matching verse:", verse.number);
       setCurrentVerseNumber(verse.number);
+    } else {
+      console.log("No matching verse found for:", verseNumber);
     }
   };
 
@@ -71,14 +86,16 @@ const SurahPage = () => {
           <div 
             key={verse.number} 
             ref={el => verseRefs.current[verse.number] = el}
-            className={`verse-container ${currentVerseNumber === verse.number ? 'bg-primary/10' : ''}`}
+            className={`verse-container mb-8 p-4 rounded-lg ${
+              currentVerseNumber === verse.number ? 'bg-primary/10' : ''
+            }`}
           >
             <div className="flex justify-between items-start mb-4">
               <span className="bg-primary text-white px-3 py-1 rounded">
                 {verse.numberInSurah}
               </span>
             </div>
-            <p className="arabic-text text-right mb-4">{verse.text}</p>
+            <p className="arabic-text text-right mb-4 text-2xl leading-loose">{verse.text}</p>
             <p className="text-gray-700">{verse.translation}</p>
           </div>
         ))}
