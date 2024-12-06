@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
 import { toast } from "sonner";
 import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import { useTextToSpeech } from "@/hooks/useTextToSpeech";
 import { useVerseProgression } from "@/hooks/useVerseProgression";
+import { useAudioState } from "@/hooks/useAudioState";
 import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
 import AudioHandler from "./audio/AudioHandler";
+import AudioTransitionHandler from "./audio/AudioTransitionHandler";
+import AudioNavigation from "./audio/AudioNavigation";
 import { getAudioUrl } from "@/utils/audioUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
-import { isMobileDevice } from "@/utils/deviceUtils";
 
 interface AudioPlayerProps {
   verses: {
@@ -28,14 +29,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   currentSurahNumber,
   onVerseChange,
 }) => {
-  const [recitationLanguage, setRecitationLanguage] = useState(() => 
-    localStorage.getItem("recitationLanguage") || "ar.alafasy"
-  );
-  const [selectedReciter, setSelectedReciter] = useState(() =>
-    localStorage.getItem("selectedReciter") || "ar.alafasy"
-  );
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const navigate = useNavigate();
+  const {
+    isTransitioning,
+    recitationLanguage,
+    selectedReciter,
+    setSelectedReciter,
+    handleLanguageChange,
+    startTransition
+  } = useAudioState();
 
   const { currentVerseIndex, playNextVerse, resetVerse } = useVerseProgression({
     totalVerses: verses.length,
@@ -71,6 +72,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     language: recitationLanguage
   });
 
+  const { navigateToSurah } = AudioNavigation({
+    currentSurahNumber,
+    resetAudio,
+  });
+
   const handlePlayPause = async () => {
     if (recitationLanguage !== "ar.alafasy") {
       if (isPlaying) {
@@ -85,37 +91,26 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  const handleLanguageChange = (value: string) => {
-    setRecitationLanguage(value);
-    localStorage.setItem("recitationLanguage", value);
-    
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    stopSpeaking();
-    setIsPlaying(false);
-    resetVerse();
-    
-    if (value !== "ar.alafasy") {
-      toast.info(`Switched to ${value} recitation`);
-      setSelectedReciter("ar.alafasy");
-    } else {
-      const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
-      setSelectedReciter(savedReciter);
-      resetAudio();
-    }
-  };
-
-  const navigateToSurah = (direction: "next" | "previous") => {
-    const nextSurahNumber =
-      direction === "next" ? currentSurahNumber + 1 : currentSurahNumber - 1;
-
-    if (nextSurahNumber >= 1 && nextSurahNumber <= 114) {
-      resetAudio();
-      stopSpeaking();
-      navigate(`/surah/${nextSurahNumber}`);
-    }
+  const handleAudioEnded = async () => {
+    console.log("Audio ended, current verse:", currentVerseIndex, "total verses:", verses.length);
+    startTransition(() => {
+      const hasMoreVerses = playNextVerse();
+      
+      if (hasMoreVerses) {
+        AudioTransitionHandler({
+          audioRef,
+          recitationLanguage,
+          isPlaying,
+          setIsPlaying,
+          playTranslations,
+          currentVerseIndex,
+          verses
+        });
+      } else {
+        console.log("No more verses to play");
+        setIsPlaying(false);
+      }
+    });
   };
 
   useEffect(() => {
@@ -138,46 +133,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setIsPlaying(false);
     };
   }, []);
-
-  const handleAudioEnded = async () => {
-    console.log("Audio ended, current verse:", currentVerseIndex, "total verses:", verses.length);
-    setIsTransitioning(true);
-    const hasMoreVerses = playNextVerse();
-    
-    if (hasMoreVerses) {
-      console.log("Playing next verse");
-      setIsPlaying(true);
-      if (recitationLanguage === "ar.alafasy" && audioRef.current) {
-        try {
-          if (isMobileDevice()) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          await audioRef.current.play();
-          console.log("Started playing next verse");
-        } catch (error) {
-          console.error("Error playing next verse:", error);
-          if (error instanceof Error && 
-              error.name !== "NotAllowedError" && 
-              !isMobileDevice()) {
-            toast.error("Error playing audio");
-          }
-          setIsPlaying(false);
-        }
-      } else if (recitationLanguage !== "ar.alafasy") {
-        try {
-          await playTranslations();
-          console.log("Started playing next translation");
-        } catch (error) {
-          console.error("Error playing next translation:", error);
-          setIsPlaying(false);
-        }
-      }
-    } else {
-      console.log("No more verses to play");
-      setIsPlaying(false);
-    }
-    setTimeout(() => setIsTransitioning(false), isMobileDevice() ? 1000 : 500);
-  };
 
   return (
     <AudioContainer>
@@ -208,7 +163,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <AudioSelectors
           recitationLanguage={recitationLanguage}
           selectedReciter={selectedReciter}
-          onLanguageChange={handleLanguageChange}
+          onLanguageChange={(value) => handleLanguageChange(value, {
+            audioRef,
+            resetVerse,
+            setIsPlaying,
+            resetAudio
+          })}
           onReciterChange={(value) => {
             if (recitationLanguage !== "ar.alafasy") {
               toast.error("Reciter selection is only available for Arabic recitation");
