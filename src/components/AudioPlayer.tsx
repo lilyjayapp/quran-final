@@ -52,7 +52,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       
       if (recitationLanguage === "english") {
         toast.error("English audio not available", {
-          description: "English translation audio is currently unavailable. Playing Arabic recitation.",
+          description: "English translation audio is not currently available. Playing Arabic recitation with English text translation.",
           action: {
             label: "Switch to Arabic",
             onClick: () => {
@@ -110,10 +110,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     localStorage.setItem("recitationLanguage", value);
     
     if (value === "english") {
-      setSelectedReciter("en.walk");
-      toast.info("Switching to English", {
-        description: "Note: If English audio is unavailable, it will automatically fallback to Arabic recitation.",
+      toast.info("English audio not available", {
+        description: "English translation audio is not currently available. Playing Arabic recitation with English text translation.",
       });
+      setSelectedReciter("ar.alafasy");
     } else {
       const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
       setSelectedReciter(savedReciter);
