@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayback } from "@/hooks/useAudioPlayback";
 import AudioControls from "./AudioControls";
 import AudioLanguageSelect from "./audio/AudioLanguageSelect";
 import ReciterSelect from "./audio/ReciterSelect";
@@ -42,19 +42,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     playNextVerse,
     retryPlayback,
     setIsPlaying
-  } = useAudioPlayer({ 
+  } = useAudioPlayback({ 
     verses,
     onVerseChange,
     onError: () => {
-      if (recitationLanguage === "english") {
-        toast.error("English audio not available", {
-          description: "English translation audio is not currently available. Playing English text-to-speech.",
-        });
-      } else {
-        toast.error("Audio not available", {
-          description: "Please try selecting a different reciter.",
-        });
-      }
+      toast.error("Audio not available", {
+        description: "Please try selecting a different reciter.",
+      });
     }
   });
 
@@ -63,8 +57,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     const translations = verses.map(verse => verse.translation);
     
     const playNextVerse = () => {
-      if (!isPlaying) return; // Stop if playback is paused
-      
+      if (!isPlaying) return;
       currentIndex++;
       if (currentIndex < verses.length) {
         if (onVerseChange) {
@@ -80,7 +73,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       }
     };
 
-    // Start playing from current verse
     speak(translations[currentIndex], playNextVerse);
   };
 
