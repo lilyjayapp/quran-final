@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { speak, stopSpeaking } from "@/utils/ttsUtils";
 import { toast } from "sonner";
 
 interface QueuedVerse {
@@ -32,19 +31,8 @@ export const useAudioQueue = ({
         onVerseChange(verses[currentIndex].number);
       }
 
-      if (recitationLanguage === "ar.alafasy") {
-        audioRef.current.src = verses[currentIndex].audio || '';
-        await audioRef.current.play();
-      } else {
-        // Use text-to-speech for non-Arabic recitations
-        speak(
-          verses[currentIndex].translation,
-          () => {
-            handleVerseComplete();
-          },
-          recitationLanguage
-        );
-      }
+      audioRef.current.src = verses[currentIndex].audio || '';
+      await audioRef.current.play();
     } catch (error) {
       console.error('Playback error:', error);
       toast.error("Error playing verse");
@@ -83,7 +71,6 @@ export const useAudioQueue = ({
     
     return () => {
       audio.removeEventListener('ended', handleEnded);
-      stopSpeaking();
       audio.pause();
       setIsPlaying(false);
     };
@@ -94,18 +81,13 @@ export const useAudioQueue = ({
       setIsPlaying(true);
     } else {
       setIsPlaying(false);
-      if (recitationLanguage === "ar.alafasy") {
-        audioRef.current.pause();
-      } else {
-        stopSpeaking();
-      }
+      audioRef.current.pause();
     }
   };
 
   const reset = () => {
     setCurrentIndex(0);
     setIsPlaying(false);
-    stopSpeaking();
     audioRef.current.pause();
     audioRef.current.currentTime = 0;
     if (onVerseChange) {
