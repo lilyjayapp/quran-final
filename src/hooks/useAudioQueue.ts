@@ -104,6 +104,7 @@ export const useAudioQueue = ({
     isLoading,
     currentIndex,
     togglePlay,
-    reset
+    reset,
+    setIsPlaying
   };
 };
