@@ -2,26 +2,16 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string) =
   if (!verseNumber) return "";
   
   const isArabic = language === "ar.alafasy";
-  const baseUrl = isArabic 
-    ? "https://cdn.islamic.network/quran/audio/128/"
-    : "https://cdn.islamic.network/quran/audio-translations/128/";
+  const baseUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/";
     
-  // Map language codes to supported audio translation codes
-  const audioLanguageMap: Record<string, string> = {
-    "en.sahih": "en.sahih",
-    "en.asad": "en.sahih", // Fallback to sahih for asad translations
-    "ar.alafasy": "ar.alafasy"
-  };
-
-  const audioLanguage = audioLanguageMap[language] || language;
+  // For now, only support Arabic audio as English audio translations are not consistently available
   console.log('Audio URL Generation:', {
     language,
-    mappedLanguage: audioLanguage,
     isArabic,
-    url: `${baseUrl}${audioLanguage}/${verseNumber}.mp3`
+    url: `${baseUrl}${verseNumber}.mp3`
   });
   
-  return `${baseUrl}${audioLanguage}/${verseNumber}.mp3`;
+  return `${baseUrl}${verseNumber}.mp3`;
 };
 
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {
