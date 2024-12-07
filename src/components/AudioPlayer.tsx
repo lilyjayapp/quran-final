@@ -37,7 +37,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     isLoading,
     currentIndex,
     togglePlay,
-    reset
+    reset,
+    playNextVerse
   } = useAudioQueue({
     verses,
     recitationLanguage,
@@ -56,7 +57,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   });
 
   const handleLanguageSelect = (value: string) => {
-    stopSpeaking(); // Stop any ongoing speech
+    stopSpeaking();
     
     handleLanguageChange(value, {
       audioRef: { current: null },
@@ -66,12 +67,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     });
 
     if (value !== "ar.alafasy" && verses[currentIndex]) {
-      // Use text-to-speech for non-Arabic
       speak(verses[currentIndex].translation, () => {
+        playNextVerse();
         if (currentIndex < verses.length - 1) {
-          // Move to next verse after speech ends
-          reset();
-          togglePlay();
+          speak(verses[currentIndex + 1].translation, () => {
+            playNextVerse();
+          });
         }
       });
     }
