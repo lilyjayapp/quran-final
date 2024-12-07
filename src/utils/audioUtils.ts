@@ -6,7 +6,9 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string) =
     ? "https://cdn.islamic.network/quran/audio/128/"
     : "https://cdn.islamic.network/quran/audio-translations/128/";
     
-  return `${baseUrl}${language}/${verseNumber}.mp3`;
+  // Use en.sahih for English translations
+  const audioLanguage = language === "en.asad" ? "en.sahih" : language;
+  return `${baseUrl}${audioLanguage}/${verseNumber}.mp3`;
 };
 
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {

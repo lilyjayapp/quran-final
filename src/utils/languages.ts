@@ -17,8 +17,8 @@ export const languages: Language[] = [
   { 
     id: "2", 
     name: "English", 
-    code: "en.asad", 
+    code: "en.sahih", 
     direction: "ltr",
-    audioCode: "en.asad"
+    audioCode: "en.sahih"
   },
 ];
