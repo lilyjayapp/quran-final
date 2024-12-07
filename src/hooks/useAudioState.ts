@@ -2,14 +2,15 @@ import { useState } from "react";
 import { isMobileDevice } from "@/utils/deviceUtils";
 import { stopSpeaking } from "@/utils/ttsUtils";
 import { toast } from "sonner";
+import { DEFAULT_RECITER } from "@/utils/reciters";
 
 export const useAudioState = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [recitationLanguage, setRecitationLanguage] = useState(() => 
-    localStorage.getItem("recitationLanguage") || "ar.alafasy"
+    localStorage.getItem("recitationLanguage") || DEFAULT_RECITER
   );
   const [selectedReciter, setSelectedReciter] = useState(() =>
-    localStorage.getItem("selectedReciter") || "ar.alafasy"
+    localStorage.getItem("selectedReciter") || DEFAULT_RECITER
   );
 
   const handleLanguageChange = (value: string, {
@@ -34,11 +35,11 @@ export const useAudioState = () => {
     setIsPlaying(false);
     resetVerse();
     
-    if (value !== "ar.alafasy") {
+    if (value !== DEFAULT_RECITER) {
       toast.info(`Switched to ${value} recitation`);
-      setSelectedReciter("ar.alafasy");
+      setSelectedReciter(DEFAULT_RECITER);
     } else {
-      const savedReciter = localStorage.getItem("selectedReciter") || "ar.alafasy";
+      const savedReciter = localStorage.getItem("selectedReciter") || DEFAULT_RECITER;
       setSelectedReciter(savedReciter);
       resetAudio();
     }

@@ -2,7 +2,7 @@ import React from "react";
 import { useSurahs } from "../services/quranApi";
 import SurahCard from "../components/SurahCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { reciters } from "../utils/reciters";
+import { reciters, DEFAULT_RECITER } from "../utils/reciters";
 import { languages } from "../utils/languages";
 import { useToast } from "../components/ui/use-toast";
 
@@ -10,7 +10,7 @@ const Index = () => {
   const { data: surahs, isLoading, error } = useSurahs();
   const { toast } = useToast();
   const [selectedReciter, setSelectedReciter] = React.useState(() => 
-    localStorage.getItem('selectedReciter') || reciters[0].identifier
+    localStorage.getItem('selectedReciter') || DEFAULT_RECITER
   );
   const [selectedLanguage, setSelectedLanguage] = React.useState(() => 
     localStorage.getItem('selectedLanguage') || languages[1].code
