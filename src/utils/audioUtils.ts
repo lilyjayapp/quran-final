@@ -6,8 +6,21 @@ export const getAudioUrl = (verseNumber: number | undefined, language: string) =
     ? "https://cdn.islamic.network/quran/audio/128/"
     : "https://cdn.islamic.network/quran/audio-translations/128/";
     
-  // Use en.sahih for English translations
-  const audioLanguage = language === "en.asad" ? "en.sahih" : language;
+  // Map language codes to supported audio translation codes
+  const audioLanguageMap: Record<string, string> = {
+    "en.sahih": "en.sahih",
+    "en.asad": "en.sahih", // Fallback to sahih for asad translations
+    "ar.alafasy": "ar.alafasy"
+  };
+
+  const audioLanguage = audioLanguageMap[language] || language;
+  console.log('Audio URL Generation:', {
+    language,
+    mappedLanguage: audioLanguage,
+    isArabic,
+    url: `${baseUrl}${audioLanguage}/${verseNumber}.mp3`
+  });
+  
   return `${baseUrl}${audioLanguage}/${verseNumber}.mp3`;
 };
 
