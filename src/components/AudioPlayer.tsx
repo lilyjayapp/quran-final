@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioQueue } from "@/hooks/useAudioQueue";
 import { useAudioState } from "@/hooks/useAudioState";
+import { toast } from "sonner";
 import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
@@ -55,6 +56,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     },
   });
 
+  const handleLanguageSelect = (value: string) => {
+    if (value !== "ar.alafasy") {
+      toast.info("English audio is currently unavailable. Playing Arabic recitation.");
+      handleLanguageChange(value, {
+        audioRef: { current: null },
+        resetVerse: reset,
+        setIsPlaying: () => {},
+        resetAudio: reset
+      });
+    } else {
+      handleLanguageChange(value, {
+        audioRef: { current: null },
+        resetVerse: reset,
+        setIsPlaying: () => {},
+        resetAudio: reset
+      });
+    }
+  };
+
   const disablePrevious = currentSurahNumber <= 1;
   const disableNext = currentSurahNumber >= 114;
 
@@ -87,12 +107,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <AudioSelectors
           recitationLanguage={recitationLanguage}
           selectedReciter={selectedReciter}
-          onLanguageChange={(value) => handleLanguageChange(value, {
-            audioRef: { current: null },
-            resetVerse: reset,
-            setIsPlaying: () => {},
-            resetAudio: reset
-          })}
+          onLanguageChange={handleLanguageSelect}
           onReciterChange={(value) => {
             setSelectedReciter(value);
             localStorage.setItem("selectedReciter", value);
