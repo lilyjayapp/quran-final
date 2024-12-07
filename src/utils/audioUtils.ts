@@ -1,8 +1,12 @@
-export const getAudioUrl = (verseNumber: number | undefined, language: string, reciter: string) => {
+export const getAudioUrl = (verseNumber: number | undefined, language: string) => {
   if (!verseNumber) return "";
   
-  const baseUrl = "https://cdn.islamic.network/quran/audio/128/";
-  return `${baseUrl}${reciter}/${verseNumber}.mp3`;
+  const isArabic = language === "ar.alafasy";
+  const baseUrl = isArabic 
+    ? "https://cdn.islamic.network/quran/audio/128/"
+    : "https://cdn.islamic.network/quran/audio-translations/128/";
+    
+  return `${baseUrl}${language}/${verseNumber}.mp3`;
 };
 
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {

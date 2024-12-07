@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from "sonner";
+import { getAudioUrl } from '@/utils/audioUtils';
 
 interface QueuedVerse {
   number: number;
@@ -31,7 +32,10 @@ export const useAudioQueue = ({
         onVerseChange(verses[currentIndex].number);
       }
 
-      audioRef.current.src = verses[currentIndex].audio || '';
+      const audioUrl = getAudioUrl(verses[currentIndex].number, recitationLanguage);
+      console.log('Playing audio URL:', audioUrl);
+      
+      audioRef.current.src = audioUrl;
       await audioRef.current.play();
     } catch (error) {
       console.error('Playback error:', error);
