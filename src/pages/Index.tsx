@@ -61,7 +61,7 @@ const Index = () => {
           <SelectContent>
             {reciters.map((reciter) => (
               <SelectItem key={reciter.id} value={reciter.identifier}>
-                {reciter.name} ({reciter.style})
+                {reciter.name}
               </SelectItem>
             ))}
           </SelectContent>
