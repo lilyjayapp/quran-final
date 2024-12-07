@@ -30,7 +30,7 @@ const SurahPage = () => {
   return (
     <div className="min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-gray-200">
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto py-4">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <Button
@@ -44,23 +44,24 @@ const SurahPage = () => {
             </div>
             
             {surah && (
-              <AudioPlayer 
-                verses={surah.verses}
-                currentSurahNumber={surah.number}
-                onVerseChange={setCurrentVerseNumber}
-              />
+              <div className="flex flex-col gap-4">
+                <div className="text-center">
+                  <h1 className="text-3xl font-bold">{surah.englishName}</h1>
+                  <p className="text-gray-600">{surah.englishNameTranslation}</p>
+                  <p className="arabic-text text-4xl mt-2">{surah.name}</p>
+                </div>
+                <AudioPlayer 
+                  verses={surah.verses}
+                  currentSurahNumber={surah.number}
+                  onVerseChange={setCurrentVerseNumber}
+                />
+              </div>
             )}
           </div>
         </div>
       </div>
       
-      <div className="container pt-40 pb-16">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">{surah?.englishName}</h1>
-          <p className="text-gray-600">{surah?.englishNameTranslation}</p>
-          <p className="arabic-text text-4xl mt-4">{surah?.name}</p>
-        </div>
-        
+      <div className="container pt-64 pb-16">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
