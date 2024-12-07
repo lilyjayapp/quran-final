@@ -38,7 +38,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     currentIndex,
     togglePlay,
     reset,
-    playNextVerse
+    setIsPlaying
   } = useAudioQueue({
     verses,
     recitationLanguage,
@@ -66,15 +66,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       resetAudio: reset
     });
 
-    if (value !== "ar.alafasy" && verses[currentIndex]) {
-      speak(verses[currentIndex].translation, () => {
-        playNextVerse();
+    if (value !== "ar.alafasy") {
+      const playNextVerse = () => {
         if (currentIndex < verses.length - 1) {
-          speak(verses[currentIndex + 1].translation, () => {
-            playNextVerse();
-          });
+          const nextVerse = verses[currentIndex + 1];
+          speak(nextVerse.translation, playNextVerse);
+        } else {
+          setIsPlaying(false);
         }
-      });
+      };
+
+      if (verses[currentIndex]) {
+        speak(verses[currentIndex].translation, playNextVerse);
+      }
     }
   };
 
