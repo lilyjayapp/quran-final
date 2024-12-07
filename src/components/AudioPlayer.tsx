@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioQueue } from "@/hooks/useAudioQueue";
 import { useAudioState } from "@/hooks/useAudioState";
-import { toast } from "sonner";
+import { speak, stopSpeaking } from "@/utils/ttsUtils";
 import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
@@ -44,7 +44,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        // Scroll the verse into view with a smooth animation
         const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
         if (verseElement) {
           verseElement.scrollIntoView({
@@ -57,20 +56,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   });
 
   const handleLanguageSelect = (value: string) => {
-    if (value !== "ar.alafasy") {
-      toast.info("English audio is currently unavailable. Playing Arabic recitation.");
-      handleLanguageChange(value, {
-        audioRef: { current: null },
-        resetVerse: reset,
-        setIsPlaying: () => {},
-        resetAudio: reset
-      });
-    } else {
-      handleLanguageChange(value, {
-        audioRef: { current: null },
-        resetVerse: reset,
-        setIsPlaying: () => {},
-        resetAudio: reset
+    stopSpeaking(); // Stop any ongoing speech
+    
+    handleLanguageChange(value, {
+      audioRef: { current: null },
+      resetVerse: reset,
+      setIsPlaying: () => {},
+      resetAudio: reset
+    });
+
+    if (value !== "ar.alafasy" && verses[currentIndex]) {
+      // Use text-to-speech for non-Arabic
+      speak(verses[currentIndex].translation, () => {
+        if (currentIndex < verses.length - 1) {
+          // Move to next verse after speech ends
+          reset();
+          togglePlay();
+        }
       });
     }
   };
@@ -80,12 +82,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const handlePrevious = () => {
     if (!disablePrevious) {
+      stopSpeaking();
       navigate(`/surah/${currentSurahNumber - 1}`);
     }
   };
 
   const handleNext = () => {
     if (!disableNext) {
+      stopSpeaking();
       navigate(`/surah/${currentSurahNumber + 1}`);
     }
   };
