@@ -63,7 +63,12 @@ export const useAudioQueue = ({
       await audioRef.current.play();
     } else {
       stopSpeaking();
-      speak(verses[currentIndex].translation);
+      speak(verses[currentIndex].translation, () => {
+        // After repeating, if we're still playing and not at the end, continue to next verse
+        if (isPlaying && currentIndex < verses.length - 1) {
+          setCurrentIndex(prev => prev + 1);
+        }
+      });
     }
   };
 
