@@ -57,6 +57,16 @@ export const useAudioQueue = ({
     }
   };
 
+  const repeatCurrentVerse = async () => {
+    if (recitationLanguage === "ar.alafasy") {
+      audioRef.current.currentTime = 0;
+      await audioRef.current.play();
+    } else {
+      stopSpeaking();
+      speak(verses[currentIndex].translation);
+    }
+  };
+
   useEffect(() => {
     if (isPlaying) {
       playCurrentVerse();
@@ -124,6 +134,7 @@ export const useAudioQueue = ({
     currentIndex,
     togglePlay,
     reset,
-    setIsPlaying
+    setIsPlaying,
+    repeatCurrentVerse
   };
 };

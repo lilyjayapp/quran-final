@@ -38,7 +38,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     currentIndex,
     togglePlay,
     reset,
-    setIsPlaying
+    setIsPlaying,
+    repeatCurrentVerse
   } = useAudioQueue({
     verses,
     recitationLanguage,
@@ -113,7 +114,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onReset={reset}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          onRetry={togglePlay}
+          onRepeatVerse={repeatCurrentVerse}
           disablePrevious={disablePrevious}
           disableNext={disableNext}
         />

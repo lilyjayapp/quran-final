@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, Pause, RotateCcw, SkipBack, SkipForward, RefreshCw } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipBack, SkipForward, RepeatOne } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface AudioControlsProps {
@@ -9,7 +9,7 @@ interface AudioControlsProps {
   onReset: () => void;
   onPrevious: () => void;
   onNext: () => void;
-  onRetry: () => void;
+  onRepeatVerse: () => void;
   disablePrevious: boolean;
   disableNext: boolean;
 }
@@ -21,7 +21,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   onReset,
   onPrevious,
   onNext,
-  onRetry,
+  onRepeatVerse,
   disablePrevious,
   disableNext,
 }) => {
@@ -68,10 +68,10 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       <Button
         variant="outline"
         size="icon"
-        onClick={onRetry}
+        onClick={onRepeatVerse}
         disabled={isLoading}
       >
-        <RefreshCw size={20} />
+        <RepeatOne size={20} />
       </Button>
     </div>
   );
