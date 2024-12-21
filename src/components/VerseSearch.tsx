@@ -91,6 +91,22 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
     });
   };
 
+  // Highlight matching text
+  const highlightText = (text: string, searchTerm: string) => {
+    if (!searchTerm) return text;
+    const searchWords = searchTerm.toLowerCase().split(/\s+/);
+    let highlightedText = text;
+    
+    searchWords.forEach(word => {
+      if (word) {
+        const regex = new RegExp(`(${word})`, 'gi');
+        highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
+      }
+    });
+    
+    return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+  };
+
   return (
     <>
       <Button
@@ -122,9 +138,11 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
                 <div className="flex items-start gap-2">
                   <Search className="h-4 w-4 mt-1" />
                   <div className="flex flex-col gap-1 flex-1">
-                    <span className="text-sm">{verse.translation}</span>
+                    <span className="text-sm">
+                      {highlightText(verse.translation, (document.querySelector('[cmdk-input]') as HTMLInputElement)?.value || '')}
+                    </span>
                     <span className="text-xs text-muted-foreground arabic-text">
-                      {verse.text}
+                      {highlightText(verse.text, (document.querySelector('[cmdk-input]') as HTMLInputElement)?.value || '')}
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
