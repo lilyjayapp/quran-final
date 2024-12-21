@@ -42,7 +42,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     repeatCurrentVerse
   } = useAudioQueue({
     verses,
-    recitationLanguage: selectedReciter,
+    recitationLanguage,
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
@@ -68,8 +68,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       resetAudio: reset
     });
 
-    // Only play translations for non-Arabic languages
-    if (!value.startsWith('ar.')) {
+    if (value !== "ar.alafasy") {
       const playTranslation = () => {
         if (verses[currentIndex]) {
           speak(verses[currentIndex].translation, () => {
@@ -85,16 +84,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (isPlaying) {
         playTranslation();
       }
-    }
-  };
-
-  const handleReciterChange = (value: string) => {
-    setSelectedReciter(value);
-    localStorage.setItem("selectedReciter", value);
-    reset();
-    if (isPlaying) {
-      setIsPlaying(false);
-      setTimeout(() => setIsPlaying(true), 100);
     }
   };
 
@@ -133,7 +122,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           recitationLanguage={recitationLanguage}
           selectedReciter={selectedReciter}
           onLanguageChange={handleLanguageSelect}
-          onReciterChange={handleReciterChange}
+          onReciterChange={(value) => {
+            setSelectedReciter(value);
+            localStorage.setItem("selectedReciter", value);
+            reset();
+          }}
           isLoading={isLoading}
         />
       </div>

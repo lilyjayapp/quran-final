@@ -27,7 +27,7 @@ const AudioSelectors = ({
       <ReciterSelect
         value={selectedReciter}
         onChange={onReciterChange}
-        disabled={isLoading || !recitationLanguage.startsWith('ar.')}
+        disabled={isLoading || recitationLanguage !== "ar.alafasy"}
       />
     </div>
   );
