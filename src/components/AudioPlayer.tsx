@@ -42,7 +42,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     repeatCurrentVerse
   } = useAudioQueue({
     verses,
-    recitationLanguage: selectedReciter, // Use selectedReciter instead of recitationLanguage
+    recitationLanguage: selectedReciter,
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
@@ -68,7 +68,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       resetAudio: reset
     });
 
-    if (value !== "ar.alafasy") {
+    // Only play translations for non-Arabic languages
+    if (!value.startsWith('ar.')) {
       const playTranslation = () => {
         if (verses[currentIndex]) {
           speak(verses[currentIndex].translation, () => {
