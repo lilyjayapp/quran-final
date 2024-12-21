@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, Pause, Square, SkipBack, SkipForward, Repeat1 } from "lucide-react";
+import { Play, Pause, Square, SkipBack, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface AudioControlsProps {
@@ -67,11 +67,11 @@ const AudioControls: React.FC<AudioControlsProps> = ({
       </Button>
       <Button
         variant="outline"
-        size="icon"
         onClick={onRepeatVerse}
         disabled={isLoading}
+        className="flex items-center gap-2"
       >
-        <Repeat1 size={20} />
+        <span>Back</span>
       </Button>
     </div>
   );
