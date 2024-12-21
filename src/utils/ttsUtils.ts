@@ -5,9 +5,9 @@ if (typeof window !== 'undefined') {
   speechSynthesis = window.speechSynthesis;
 }
 
-// Using Alquran.Cloud API with Ibrahim Walk's English recitation
-const ALQURAN_CLOUD_API = "https://api.alquran.cloud/v1/ayah";
-const ENGLISH_RECITER = "en.walk"; // Ibrahim Walk's English recitation
+// Using Tarteel.ai API for Islamic recitation
+const TARTEEL_API = "https://api.tarteel.ai/v1/speech";
+const FALLBACK_API = "https://api.alquran.cloud/v1/ayah";
 
 export const speak = async (text: string, onEnd?: () => void) => {
   try {
@@ -20,9 +20,34 @@ export const speak = async (text: string, onEnd?: () => void) => {
                         text.includes("Muhammad");
 
     if (isQuranVerse) {
-      console.log('Using Alquran.Cloud API for verse:', text);
+      console.log('Using Tarteel API for verse:', text);
       const audio = new Audio();
-      audio.src = `${ALQURAN_CLOUD_API}/1/en.walk`;
+      
+      // Try Tarteel.ai first
+      try {
+        const response = await fetch(`${TARTEEL_API}/synthesize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: text,
+            voice: 'male_english', // Specifically request male voice
+            speed: 1.0
+          })
+        });
+
+        if (response.ok) {
+          const audioBlob = await response.blob();
+          audio.src = URL.createObjectURL(audioBlob);
+        } else {
+          throw new Error('Tarteel API failed');
+        }
+      } catch (error) {
+        console.log('Fallback to Alquran.Cloud API');
+        // Fallback to Alquran.Cloud
+        audio.src = `${FALLBACK_API}/1/ar.alafasy`; // Using Mishary Rashid Alafasy's recitation
+      }
       
       audio.onended = () => {
         if (onEnd) onEnd();
@@ -30,7 +55,7 @@ export const speak = async (text: string, onEnd?: () => void) => {
 
       await audio.play();
     } else {
-      // For non-Quranic text, use Microsoft Edge TTS voices if available
+      // For non-Quranic text, try to use a male voice
       currentUtterance = new SpeechSynthesisUtterance(text);
       
       // Get available voices and wait if needed
@@ -44,42 +69,21 @@ export const speak = async (text: string, onEnd?: () => void) => {
         });
       }
 
-      // Log available voices for debugging
-      console.log('Available voices:', voices.map(v => ({
-        name: v.name,
-        lang: v.lang,
-        isEdge: v.name.includes('Microsoft'),
-        isMale: v.name.toLowerCase().includes('male')
-      })));
-
-      // Priority order for voice selection:
-      // 1. Microsoft Edge Male English
-      // 2. Any Microsoft Edge English
-      // 3. Any Male English
-      // 4. Default to first English voice
-      const selectedVoice = voices.find(v => 
-        v.name.includes('Microsoft') && 
+      // Try to find a deep male voice
+      const maleVoice = voices.find(v => 
         v.name.toLowerCase().includes('male') && 
-        v.lang.startsWith('en')
-      ) || voices.find(v => 
-        v.name.includes('Microsoft') && 
-        v.lang.startsWith('en')
-      ) || voices.find(v => 
-        v.name.toLowerCase().includes('male') && 
-        v.lang.startsWith('en')
-      ) || voices.find(v => 
-        v.lang.startsWith('en')
+        v.lang === 'en-GB'
+      ) || voices.find(v =>
+        v.name.toLowerCase().includes('male')
       );
 
-      if (selectedVoice) {
-        console.log('Selected voice:', selectedVoice.name);
-        currentUtterance.voice = selectedVoice;
-        currentUtterance.lang = selectedVoice.lang;
+      if (maleVoice) {
+        currentUtterance.voice = maleVoice;
       }
 
-      // Force very low pitch and slow rate for more masculine sound
+      // Force very low pitch and slow rate
       currentUtterance.pitch = 0.1;
-      currentUtterance.rate = 0.85;
+      currentUtterance.rate = 0.8;
       currentUtterance.volume = 1;
 
       if (onEnd) {
