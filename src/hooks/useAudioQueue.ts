@@ -12,10 +12,12 @@ interface QueuedVerse {
 export const useAudioQueue = ({
   verses,
   recitationLanguage,
+  selectedReciter,
   onVerseChange,
 }: {
   verses: QueuedVerse[];
   recitationLanguage: string;
+  selectedReciter: string;
   onVerseChange?: (verseNumber: number) => void;
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -35,8 +37,8 @@ export const useAudioQueue = ({
         onVerseChange(verses[currentIndex].number);
       }
 
-      if (recitationLanguage === "ar.alafasy") {
-        const audioUrl = getAudioUrl(verses[currentIndex].number, recitationLanguage);
+      if (recitationLanguage.startsWith("ar.")) {
+        const audioUrl = getAudioUrl(verses[currentIndex].number, selectedReciter);
         console.log('Playing Arabic audio URL:', audioUrl);
         audioRef.current.src = audioUrl;
         await audioRef.current.play();

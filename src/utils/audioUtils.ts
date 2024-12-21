@@ -1,12 +1,12 @@
-export const getAudioUrl = (verseNumber: number | undefined, language: string) => {
+export const getAudioUrl = (verseNumber: number | undefined, reciter: string) => {
   if (!verseNumber) return "";
   
-  const isArabic = language === "ar.alafasy";
-  const baseUrl = "https://cdn.islamic.network/quran/audio/128/ar.alafasy/";
+  const isArabic = reciter.startsWith("ar.");
+  const baseUrl = `https://cdn.islamic.network/quran/audio/128/${reciter}/`;
     
   // For now, only support Arabic audio as English audio translations are not consistently available
   console.log('Audio URL Generation:', {
-    language,
+    reciter,
     isArabic,
     url: `${baseUrl}${verseNumber}.mp3`
   });

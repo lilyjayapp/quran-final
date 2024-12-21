@@ -43,6 +43,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioQueue({
     verses,
     recitationLanguage,
+    selectedReciter, // Pass selectedReciter to useAudioQueue
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
