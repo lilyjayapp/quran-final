@@ -5,8 +5,6 @@ if (typeof window !== 'undefined') {
   speechSynthesis = window.speechSynthesis;
 }
 
-// Using Tarteel.ai API for Islamic recitation
-const TARTEEL_API = "https://api.tarteel.ai/v1/speech";
 const FALLBACK_API = "https://api.alquran.cloud/v1/ayah";
 
 export const speak = async (text: string, onEnd?: () => void) => {
@@ -20,34 +18,9 @@ export const speak = async (text: string, onEnd?: () => void) => {
                         text.includes("Muhammad");
 
     if (isQuranVerse) {
-      console.log('Using Tarteel API for verse:', text);
+      console.log('Using Alquran.Cloud API for verse:', text);
       const audio = new Audio();
-      
-      // Try Tarteel.ai first
-      try {
-        const response = await fetch(`${TARTEEL_API}/synthesize`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: text,
-            voice: 'male_english', // Specifically request male voice
-            speed: 1.0
-          })
-        });
-
-        if (response.ok) {
-          const audioBlob = await response.blob();
-          audio.src = URL.createObjectURL(audioBlob);
-        } else {
-          throw new Error('Tarteel API failed');
-        }
-      } catch (error) {
-        console.log('Fallback to Alquran.Cloud API');
-        // Fallback to Alquran.Cloud
-        audio.src = `${FALLBACK_API}/1/ar.alafasy`; // Using Mishary Rashid Alafasy's recitation
-      }
+      audio.src = `${FALLBACK_API}/1/ar.alafasy`; // Using Mishary Rashid Alafasy's recitation
       
       audio.onended = () => {
         if (onEnd) onEnd();
