@@ -17,9 +17,9 @@ export const speak = (text: string, onEnd?: () => void) => {
   // Create new utterance
   currentUtterance = new SpeechSynthesisUtterance(text);
   
-  // Configure for deeper male voice
-  currentUtterance.rate = 0.85;
-  currentUtterance.pitch = 0.6; // Much lower pitch for male voice
+  // Force very low pitch and slow rate for male-like voice
+  currentUtterance.rate = 0.8;
+  currentUtterance.pitch = 0.1; // Extremely low pitch to force male-like voice
   currentUtterance.volume = 1;
 
   // Wait for voices to be loaded
@@ -27,49 +27,64 @@ export const speak = (text: string, onEnd?: () => void) => {
     const voices = speechSynthesis.getVoices();
     
     // Log all available voices for debugging
-    console.log('All available voices:', voices.map(v => ({
+    console.log('Available voices:', voices.map(v => ({
       name: v.name,
       lang: v.lang,
       default: v.default,
-      localService: v.localService
+      localService: v.localService,
+      voiceURI: v.voiceURI
     })));
 
-    // Explicitly look for known male voices
-    const knownMaleVoices = [
-      'Microsoft David',
-      'Google UK English Male',
-      'Microsoft Mark',
-      'Microsoft James',
-      'en-US-Standard-B', // Google Cloud male voice
-      'en-GB-Standard-B'  // Google Cloud male voice
-    ];
-
-    // Try to find a male voice
-    const selectedVoice = 
-      // First try known male voices
-      voices.find(v => knownMaleVoices.some(male => v.name.includes(male))) ||
-      // Then try any voice with "male" in the name
-      voices.find(v => v.name.toLowerCase().includes('male')) ||
-      // Then try deeper voices (often male)
-      voices.find(v => v.name.includes('David') || v.name.includes('James') || v.name.includes('Mark')) ||
-      // Fallback to first English voice
-      voices.find(v => v.lang.startsWith('en'));
+    // Strict prioritization of male voices
+    let selectedVoice = null;
+    
+    // First priority: Microsoft David
+    selectedVoice = voices.find(v => v.name === 'Microsoft David Desktop');
+    
+    // Second priority: Any Microsoft male voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => 
+        v.name.includes('Microsoft') && 
+        (v.name.includes('David') || v.name.includes('Mark') || v.name.includes('James'))
+      );
+    }
+    
+    // Third priority: Any Google male voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => 
+        v.name.includes('Google') && v.name.toLowerCase().includes('male')
+      );
+    }
+    
+    // Fourth priority: Any voice with 'male' in the name
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => 
+        v.name.toLowerCase().includes('male')
+      );
+    }
+    
+    // Last resort: First English voice, but force very low pitch
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('en'));
+      if (selectedVoice) {
+        console.warn('No male voice found, using first English voice with very low pitch');
+      }
+    }
 
     if (selectedVoice) {
       console.log('Selected voice:', {
         name: selectedVoice.name,
         lang: selectedVoice.lang,
         default: selectedVoice.default,
-        localService: selectedVoice.localService
+        localService: selectedVoice.localService,
+        voiceURI: selectedVoice.voiceURI
       });
       
       currentUtterance.voice = selectedVoice;
       currentUtterance.lang = selectedVoice.lang;
-    } else {
-      console.warn('No suitable male voice found, using default voice');
     }
 
-    // Log final utterance configuration
+    // Log final configuration
     console.log('Final TTS configuration:', {
       voice: currentUtterance.voice?.name,
       lang: currentUtterance.lang,
@@ -80,15 +95,6 @@ export const speak = (text: string, onEnd?: () => void) => {
     if (onEnd) {
       currentUtterance.onend = onEnd;
     }
-
-    // Log for debugging
-    console.log('Speaking text:', {
-      text,
-      voice: currentUtterance.voice?.name,
-      lang: currentUtterance.lang,
-      rate: currentUtterance.rate,
-      pitch: currentUtterance.pitch
-    });
 
     speechSynthesis.speak(currentUtterance);
   };
