@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { toast } from "sonner";
 import { getAudioUrl } from '@/utils/audioUtils';
 import { speak, stopSpeaking } from '@/utils/ttsUtils';
 
@@ -21,11 +20,9 @@ export const useAudioQueue = ({
   onVerseChange?: (verseNumber: number) => void;
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(new Audio());
-  const [repeatClickCount, setRepeatClickCount] = useState(0);
-  const repeatClickTimeout = useRef<NodeJS.Timeout>();
 
   const playCurrentVerse = async () => {
     if (!verses[currentIndex]) return;
@@ -40,59 +37,50 @@ export const useAudioQueue = ({
       if (recitationLanguage.startsWith("ar.")) {
         const audioUrl = getAudioUrl(verses[currentIndex].number, selectedReciter);
         console.log('Playing Arabic audio URL:', audioUrl);
-        audioRef.current.src = audioUrl;
+        
+        // Reset the audio element
+        audioRef.current.pause();
+        audioRef.current = new Audio(audioUrl);
+        
+        // Set up event listeners
+        audioRef.current.onended = () => {
+          if (currentIndex < verses.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+          } else {
+            setIsPlaying(false);
+            setCurrentIndex(0);
+          }
+        };
+
+        audioRef.current.oncanplay = () => {
+          setIsLoading(false);
+        };
+
+        audioRef.current.onerror = () => {
+          console.error('Audio loading error:', audioRef.current.error);
+          setIsLoading(false);
+          setIsPlaying(false);
+        };
+
+        // Start loading and playing
+        await audioRef.current.load();
         await audioRef.current.play();
       } else {
-        console.log('Playing English translation:', verses[currentIndex].translation);
+        stopSpeaking();
         speak(verses[currentIndex].translation, () => {
           if (currentIndex < verses.length - 1 && isPlaying) {
             setCurrentIndex(prev => prev + 1);
           } else {
             setIsPlaying(false);
+            setCurrentIndex(0);
           }
         });
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Playback error:', error);
-      toast.error("Error playing verse");
-      setIsPlaying(false);
-    } finally {
       setIsLoading(false);
-    }
-  };
-
-  const repeatCurrentVerse = async () => {
-    // Clear any existing timeout
-    if (repeatClickTimeout.current) {
-      clearTimeout(repeatClickTimeout.current);
-    }
-
-    // Increment click count
-    setRepeatClickCount(prev => prev + 1);
-
-    // Set a timeout to reset the click count after 1 second
-    repeatClickTimeout.current = setTimeout(() => {
-      setRepeatClickCount(0);
-    }, 1000);
-
-    // Calculate how many verses to go back based on click count
-    const versesToGoBack = Math.min(repeatClickCount, currentIndex);
-    const newIndex = currentIndex - versesToGoBack;
-
-    if (newIndex >= 0) {
-      setCurrentIndex(newIndex);
-      if (recitationLanguage === "ar.alafasy") {
-        audioRef.current.currentTime = 0;
-        await audioRef.current.play();
-      } else {
-        stopSpeaking();
-        speak(verses[newIndex].translation, () => {
-          // After repeating, if we're still playing and not at the end, continue to next verse
-          if (isPlaying && newIndex < verses.length - 1) {
-            setCurrentIndex(prev => prev + 1);
-          }
-        });
-      }
+      setIsPlaying(false);
     }
   };
 
@@ -100,63 +88,40 @@ export const useAudioQueue = ({
     if (isPlaying) {
       playCurrentVerse();
     } else {
-      if (recitationLanguage !== "ar.alafasy") {
-        stopSpeaking();
-      } else {
+      if (recitationLanguage.startsWith("ar.")) {
         audioRef.current.pause();
+      } else {
+        stopSpeaking();
       }
     }
-  }, [currentIndex, isPlaying, recitationLanguage]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    
-    const handleEnded = () => {
-      if (currentIndex < verses.length - 1) {
-        setCurrentIndex(prev => prev + 1);
-      } else {
-        setIsPlaying(false);
-        setCurrentIndex(0);
-      }
-    };
-
-    audio.addEventListener('ended', handleEnded);
     
     return () => {
-      audio.removeEventListener('ended', handleEnded);
-      audio.pause();
+      audioRef.current.pause();
       stopSpeaking();
-      setIsPlaying(false);
-      if (repeatClickTimeout.current) {
-        clearTimeout(repeatClickTimeout.current);
-      }
     };
-  }, [verses.length]);
+  }, [currentIndex, isPlaying, recitationLanguage]);
 
   const togglePlay = () => {
-    if (!isPlaying) {
-      setIsPlaying(true);
-    } else {
-      setIsPlaying(false);
-      if (recitationLanguage === "ar.alafasy") {
-        audioRef.current.pause();
-      } else {
-        stopSpeaking();
-      }
-    }
+    setIsPlaying(!isPlaying);
   };
 
   const reset = () => {
     setCurrentIndex(0);
     setIsPlaying(false);
-    if (recitationLanguage === "ar.alafasy") {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    } else {
-      stopSpeaking();
-    }
+    audioRef.current.pause();
+    stopSpeaking();
     if (onVerseChange) {
       onVerseChange(verses[0].number);
+    }
+  };
+
+  const repeatCurrentVerse = () => {
+    if (recitationLanguage.startsWith("ar.")) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    } else {
+      stopSpeaking();
+      speak(verses[currentIndex].translation);
     }
   };
 
