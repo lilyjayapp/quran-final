@@ -5,105 +5,71 @@ if (typeof window !== 'undefined') {
   speechSynthesis = window.speechSynthesis;
 }
 
-export const speak = (text: string, onEnd?: () => void) => {
-  if (!speechSynthesis) {
-    console.error('Speech synthesis not supported');
-    return;
-  }
+const ISLAMIC_NETWORK_API = "https://api.alquran.cloud/v1/ayah";
 
-  // Cancel any ongoing speech
-  stopSpeaking();
+export const speak = async (text: string, onEnd?: () => void) => {
+  try {
+    // Stop any ongoing speech
+    stopSpeaking();
 
-  // Create new utterance
-  currentUtterance = new SpeechSynthesisUtterance(text);
-  
-  // Force very low pitch and slow rate for male-like voice
-  currentUtterance.rate = 0.8;
-  currentUtterance.pitch = 0.1; // Extremely low pitch to force male-like voice
-  currentUtterance.volume = 1;
+    // First, try to find if this is a Quranic verse translation
+    // by checking for common patterns in the text
+    const isQuranVerse = text.match(/^(Chapter|Surah|Verse)/i) || 
+                        text.includes("Allah") ||
+                        text.includes("Muhammad");
 
-  // Wait for voices to be loaded
-  const loadVoices = () => {
-    const voices = speechSynthesis.getVoices();
-    
-    // Log all available voices for debugging
-    console.log('Available voices:', voices.map(v => ({
-      name: v.name,
-      lang: v.lang,
-      default: v.default,
-      localService: v.localService,
-      voiceURI: v.voiceURI
-    })));
-
-    // Strict prioritization of male voices
-    let selectedVoice = null;
-    
-    // First priority: Microsoft David
-    selectedVoice = voices.find(v => v.name === 'Microsoft David Desktop');
-    
-    // Second priority: Any Microsoft male voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => 
-        v.name.includes('Microsoft') && 
-        (v.name.includes('David') || v.name.includes('Mark') || v.name.includes('James'))
-      );
-    }
-    
-    // Third priority: Any Google male voice
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => 
-        v.name.includes('Google') && v.name.toLowerCase().includes('male')
-      );
-    }
-    
-    // Fourth priority: Any voice with 'male' in the name
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => 
-        v.name.toLowerCase().includes('male')
-      );
-    }
-    
-    // Last resort: First English voice, but force very low pitch
-    if (!selectedVoice) {
-      selectedVoice = voices.find(v => v.lang.startsWith('en'));
-      if (selectedVoice) {
-        console.warn('No male voice found, using first English voice with very low pitch');
-      }
-    }
-
-    if (selectedVoice) {
-      console.log('Selected voice:', {
-        name: selectedVoice.name,
-        lang: selectedVoice.lang,
-        default: selectedVoice.default,
-        localService: selectedVoice.localService,
-        voiceURI: selectedVoice.voiceURI
-      });
+    if (isQuranVerse) {
+      // Use Islamic Network's recitation
+      console.log('Using Islamic Network recitation for verse:', text);
+      const audio = new Audio();
       
-      currentUtterance.voice = selectedVoice;
-      currentUtterance.lang = selectedVoice.lang;
+      // Use English recitation from Islamic Network
+      audio.src = `${ISLAMIC_NETWORK_API}/262/en.walkernewton`; // Walker Newton English recitation
+      
+      audio.onended = () => {
+        if (onEnd) onEnd();
+      };
+
+      await audio.play();
+    } else {
+      // For non-Quranic text, use regular TTS with improved settings
+      currentUtterance = new SpeechSynthesisUtterance(text);
+      
+      // Configure for clear English pronunciation
+      currentUtterance.rate = 0.9;
+      currentUtterance.pitch = 1.0;
+      currentUtterance.volume = 1;
+
+      const voices = speechSynthesis.getVoices();
+      
+      // Prefer British English voices for clearer pronunciation
+      const selectedVoice = voices.find(v => 
+        v.lang === 'en-GB' && v.name.includes('Male')
+      ) || voices.find(v => 
+        v.lang.startsWith('en-') && v.name.includes('Male')
+      ) || voices.find(v => 
+        v.lang.startsWith('en-')
+      );
+
+      if (selectedVoice) {
+        currentUtterance.voice = selectedVoice;
+        currentUtterance.lang = selectedVoice.lang;
+      }
+
+      if (onEnd) {
+        currentUtterance.onend = onEnd;
+      }
+
+      speechSynthesis.speak(currentUtterance);
     }
-
-    // Log final configuration
-    console.log('Final TTS configuration:', {
-      voice: currentUtterance.voice?.name,
-      lang: currentUtterance.lang,
-      pitch: currentUtterance.pitch,
-      rate: currentUtterance.rate
-    });
-
+  } catch (error) {
+    console.error('Speech synthesis error:', error);
+    // Fallback to default TTS if Islamic Network API fails
+    const fallbackUtterance = new SpeechSynthesisUtterance(text);
     if (onEnd) {
-      currentUtterance.onend = onEnd;
+      fallbackUtterance.onend = onEnd;
     }
-
-    speechSynthesis.speak(currentUtterance);
-  };
-
-  // Handle voice loading
-  if (speechSynthesis.getVoices().length > 0) {
-    loadVoices();
-  } else {
-    speechSynthesis.addEventListener('voiceschanged', loadVoices, { once: true });
+    speechSynthesis.speak(fallbackUtterance);
   }
 };
 
