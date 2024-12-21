@@ -56,14 +56,39 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
     setOpen(false);
   };
 
-  // Function to check if a verse contains the exact word
-  const matchesSearch = (verse: string, searchTerm: string) => {
-    if (!searchTerm) return false;
-    const words = verse.toLowerCase().split(/\s+/);
-    const searchWords = searchTerm.toLowerCase().split(/\s+/);
-    return searchWords.every(searchWord => 
-      words.some(word => word.includes(searchWord))
-    );
+  // Calculate relevance score for a verse based on search term
+  const getRelevanceScore = (verse: string, translation: string, searchTerm: string) => {
+    if (!searchTerm) return 0;
+    const searchTermLower = searchTerm.toLowerCase();
+    const verseLower = verse.toLowerCase();
+    const translationLower = translation.toLowerCase();
+    
+    let score = 0;
+    
+    // Exact matches get highest score
+    if (verseLower.includes(searchTermLower)) score += 10;
+    if (translationLower.includes(searchTermLower)) score += 10;
+    
+    // Word-by-word matches
+    const searchWords = searchTermLower.split(/\s+/);
+    const verseWords = verseLower.split(/\s+/);
+    const translationWords = translationLower.split(/\s+/);
+    
+    searchWords.forEach(searchWord => {
+      if (verseWords.some(word => word.includes(searchWord))) score += 5;
+      if (translationWords.some(word => word.includes(searchWord))) score += 5;
+    });
+    
+    return score;
+  };
+
+  // Sort verses by relevance
+  const getSortedVerses = (verses: VerseSearchProps['verses'], searchTerm: string) => {
+    return [...verses].sort((a, b) => {
+      const scoreA = getRelevanceScore(a.text, a.translation, searchTerm);
+      const scoreB = getRelevanceScore(b.text, b.translation, searchTerm);
+      return scoreB - scoreA; // Sort in descending order (highest score first)
+    });
   };
 
   return (
@@ -84,7 +109,10 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
         <CommandList>
           <CommandEmpty>No verses found.</CommandEmpty>
           <CommandGroup heading="Verses">
-            {verses.map((verse) => (
+            {verses && (input => {
+              const searchTerm = (document.querySelector('[cmdk-input]') as HTMLInputElement)?.value || '';
+              return getSortedVerses(verses, searchTerm);
+            })().map((verse) => (
               <CommandItem
                 key={verse.number}
                 value={`${verse.text} ${verse.translation} ${verse.number}`}
