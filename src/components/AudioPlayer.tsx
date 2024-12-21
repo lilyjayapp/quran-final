@@ -58,26 +58,30 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   const handleLanguageSelect = (value: string) => {
     stopSpeaking();
+    setIsPlaying(false);
     
     handleLanguageChange(value, {
       audioRef: { current: null },
       resetVerse: reset,
-      setIsPlaying: () => {},
+      setIsPlaying,
       resetAudio: reset
     });
 
     if (value !== "ar.alafasy") {
-      const playNextVerse = () => {
-        if (currentIndex < verses.length - 1) {
-          const nextVerse = verses[currentIndex + 1];
-          speak(nextVerse.translation, playNextVerse);
-        } else {
-          setIsPlaying(false);
+      const playTranslation = () => {
+        if (verses[currentIndex]) {
+          speak(verses[currentIndex].translation, () => {
+            if (currentIndex < verses.length - 1 && isPlaying) {
+              setIsPlaying(true);
+            } else {
+              setIsPlaying(false);
+            }
+          });
         }
       };
 
-      if (verses[currentIndex]) {
-        speak(verses[currentIndex].translation, playNextVerse);
+      if (isPlaying) {
+        playTranslation();
       }
     }
   };

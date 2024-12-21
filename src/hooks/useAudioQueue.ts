@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from "sonner";
 import { getAudioUrl } from '@/utils/audioUtils';
+import { speak, stopSpeaking } from '@/utils/ttsUtils';
 
 interface QueuedVerse {
   number: number;
@@ -32,11 +33,21 @@ export const useAudioQueue = ({
         onVerseChange(verses[currentIndex].number);
       }
 
-      const audioUrl = getAudioUrl(verses[currentIndex].number, recitationLanguage);
-      console.log('Playing audio URL:', audioUrl);
-      
-      audioRef.current.src = audioUrl;
-      await audioRef.current.play();
+      if (recitationLanguage === "ar.alafasy") {
+        const audioUrl = getAudioUrl(verses[currentIndex].number, recitationLanguage);
+        console.log('Playing Arabic audio URL:', audioUrl);
+        audioRef.current.src = audioUrl;
+        await audioRef.current.play();
+      } else {
+        console.log('Playing English translation:', verses[currentIndex].translation);
+        speak(verses[currentIndex].translation, () => {
+          if (currentIndex < verses.length - 1 && isPlaying) {
+            setCurrentIndex(prev => prev + 1);
+          } else {
+            setIsPlaying(false);
+          }
+        });
+      }
     } catch (error) {
       console.error('Playback error:', error);
       toast.error("Error playing verse");
@@ -46,29 +57,28 @@ export const useAudioQueue = ({
     }
   };
 
-  const handleVerseComplete = () => {
-    if (currentIndex < verses.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setIsPlaying(false);
-      setCurrentIndex(0);
-      if (onVerseChange) {
-        onVerseChange(verses[0].number);
-      }
-    }
-  };
-
   useEffect(() => {
     if (isPlaying) {
       playCurrentVerse();
+    } else {
+      if (recitationLanguage !== "ar.alafasy") {
+        stopSpeaking();
+      } else {
+        audioRef.current.pause();
+      }
     }
-  }, [currentIndex, isPlaying]);
+  }, [currentIndex, isPlaying, recitationLanguage]);
 
   useEffect(() => {
     const audio = audioRef.current;
     
     const handleEnded = () => {
-      handleVerseComplete();
+      if (currentIndex < verses.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else {
+        setIsPlaying(false);
+        setCurrentIndex(0);
+      }
     };
 
     audio.addEventListener('ended', handleEnded);
@@ -76,24 +86,33 @@ export const useAudioQueue = ({
     return () => {
       audio.removeEventListener('ended', handleEnded);
       audio.pause();
+      stopSpeaking();
       setIsPlaying(false);
     };
-  }, []);
+  }, [verses.length]);
 
   const togglePlay = () => {
     if (!isPlaying) {
       setIsPlaying(true);
     } else {
       setIsPlaying(false);
-      audioRef.current.pause();
+      if (recitationLanguage === "ar.alafasy") {
+        audioRef.current.pause();
+      } else {
+        stopSpeaking();
+      }
     }
   };
 
   const reset = () => {
     setCurrentIndex(0);
     setIsPlaying(false);
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
+    if (recitationLanguage === "ar.alafasy") {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    } else {
+      stopSpeaking();
+    }
     if (onVerseChange) {
       onVerseChange(verses[0].number);
     }
