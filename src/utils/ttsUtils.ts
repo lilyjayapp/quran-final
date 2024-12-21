@@ -24,9 +24,7 @@ export const speak = async (text: string, onEnd?: () => void) => {
       const audio = new Audio();
       
       // Use Ibrahim Walk's English recitation
-      // Note: The verse number needs to be determined from context
-      // For now, we'll use a default verse as an example
-      audio.src = `${ALQURAN_CLOUD_API}/1/en.walk`; // Ibrahim Walk's English recitation
+      audio.src = `${ALQURAN_CLOUD_API}/1/en.walk`;
       
       audio.onended = () => {
         if (onEnd) onEnd();
@@ -34,10 +32,40 @@ export const speak = async (text: string, onEnd?: () => void) => {
 
       await audio.play();
     } else {
-      // For non-Quranic text, use regular TTS
+      // For non-Quranic text, use regular TTS with forced male voice settings
       currentUtterance = new SpeechSynthesisUtterance(text);
+      
+      // Get available voices
+      const voices = speechSynthesis.getVoices();
+      console.log('Available voices:', voices.map(v => ({
+        name: v.name,
+        lang: v.lang,
+        gender: v.name.toLowerCase().includes('male') ? 'male' : 'female'
+      })));
+
+      // Try to find a male voice in this order:
+      // 1. British English Male
+      // 2. Any English Male
+      // 3. Any Male voice
+      const maleVoice = voices.find(v => 
+        v.lang === 'en-GB' && v.name.toLowerCase().includes('male')
+      ) || voices.find(v => 
+        v.lang.startsWith('en') && v.name.toLowerCase().includes('male')
+      ) || voices.find(v => 
+        v.name.toLowerCase().includes('male')
+      );
+
+      if (maleVoice) {
+        console.log('Selected male voice:', maleVoice.name);
+        currentUtterance.voice = maleVoice;
+        currentUtterance.lang = maleVoice.lang;
+      } else {
+        console.log('No male voice found, using default voice');
+      }
+
+      // Force very low pitch to simulate male voice if no male voice is found
+      currentUtterance.pitch = 0.1;
       currentUtterance.rate = 0.9;
-      currentUtterance.pitch = 1.0;
       currentUtterance.volume = 1;
 
       if (onEnd) {
