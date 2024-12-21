@@ -42,7 +42,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     repeatCurrentVerse
   } = useAudioQueue({
     verses,
-    recitationLanguage,
+    recitationLanguage: selectedReciter, // Use selectedReciter instead of recitationLanguage
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
@@ -87,6 +87,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
+  const handleReciterChange = (value: string) => {
+    setSelectedReciter(value);
+    localStorage.setItem("selectedReciter", value);
+    reset();
+    if (isPlaying) {
+      setIsPlaying(false);
+      setTimeout(() => setIsPlaying(true), 100);
+    }
+  };
+
   const disablePrevious = currentSurahNumber <= 1;
   const disableNext = currentSurahNumber >= 114;
 
@@ -122,11 +132,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           recitationLanguage={recitationLanguage}
           selectedReciter={selectedReciter}
           onLanguageChange={handleLanguageSelect}
-          onReciterChange={(value) => {
-            setSelectedReciter(value);
-            localStorage.setItem("selectedReciter", value);
-            reset();
-          }}
+          onReciterChange={handleReciterChange}
           isLoading={isLoading}
         />
       </div>
