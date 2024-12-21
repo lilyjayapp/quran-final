@@ -22,6 +22,8 @@ export const useAudioQueue = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(new Audio());
+  const [repeatClickCount, setRepeatClickCount] = useState(0);
+  const repeatClickTimeout = useRef<NodeJS.Timeout>();
 
   const playCurrentVerse = async () => {
     if (!verses[currentIndex]) return;
@@ -58,17 +60,37 @@ export const useAudioQueue = ({
   };
 
   const repeatCurrentVerse = async () => {
-    if (recitationLanguage === "ar.alafasy") {
-      audioRef.current.currentTime = 0;
-      await audioRef.current.play();
-    } else {
-      stopSpeaking();
-      speak(verses[currentIndex].translation, () => {
-        // After repeating, if we're still playing and not at the end, continue to next verse
-        if (isPlaying && currentIndex < verses.length - 1) {
-          setCurrentIndex(prev => prev + 1);
-        }
-      });
+    // Clear any existing timeout
+    if (repeatClickTimeout.current) {
+      clearTimeout(repeatClickTimeout.current);
+    }
+
+    // Increment click count
+    setRepeatClickCount(prev => prev + 1);
+
+    // Set a timeout to reset the click count after 1 second
+    repeatClickTimeout.current = setTimeout(() => {
+      setRepeatClickCount(0);
+    }, 1000);
+
+    // Calculate how many verses to go back based on click count
+    const versesToGoBack = Math.min(repeatClickCount, currentIndex);
+    const newIndex = currentIndex - versesToGoBack;
+
+    if (newIndex >= 0) {
+      setCurrentIndex(newIndex);
+      if (recitationLanguage === "ar.alafasy") {
+        audioRef.current.currentTime = 0;
+        await audioRef.current.play();
+      } else {
+        stopSpeaking();
+        speak(verses[newIndex].translation, () => {
+          // After repeating, if we're still playing and not at the end, continue to next verse
+          if (isPlaying && newIndex < verses.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+          }
+        });
+      }
     }
   };
 
@@ -103,6 +125,9 @@ export const useAudioQueue = ({
       audio.pause();
       stopSpeaking();
       setIsPlaying(false);
+      if (repeatClickTimeout.current) {
+        clearTimeout(repeatClickTimeout.current);
+      }
     };
   }, [verses.length]);
 
