@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { reciters, DEFAULT_RECITER } from "../utils/reciters";
 import { languages } from "../utils/languages";
 import { useToast } from "../components/ui/use-toast";
+import SearchBar from "@/components/SearchBar";
 
 const Index = () => {
   const { data: surahs, isLoading, error } = useSurahs();
@@ -54,6 +55,7 @@ const Index = () => {
     <div className="container pt-32 pb-16">
       <h1 className="text-4xl font-bold text-center mb-8">The Noble Quran</h1>
       <div className="max-w-md mx-auto mb-8 space-y-4">
+        <SearchBar surahs={surahs || []} />
         <Select value={selectedReciter} onValueChange={handleReciterChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a reciter" />
