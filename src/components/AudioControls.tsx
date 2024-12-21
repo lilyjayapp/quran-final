@@ -1,5 +1,5 @@
 import React from "react";
-import { Play, Pause, RotateCcw, SkipBack, SkipForward, Repeat1 } from "lucide-react";
+import { Play, Pause, StopCircle, SkipBack, SkipForward, Repeat1 } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface AudioControlsProps {
@@ -55,7 +55,7 @@ const AudioControls: React.FC<AudioControlsProps> = ({
         onClick={onReset}
         disabled={isLoading}
       >
-        <RotateCcw size={20} />
+        <StopCircle size={20} />
       </Button>
       <Button
         variant="outline"
