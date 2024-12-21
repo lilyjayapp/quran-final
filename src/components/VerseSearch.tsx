@@ -56,6 +56,16 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
     setOpen(false);
   };
 
+  // Function to check if a verse contains the exact word
+  const matchesSearch = (verse: string, searchTerm: string) => {
+    if (!searchTerm) return false;
+    const words = verse.toLowerCase().split(/\s+/);
+    const searchWords = searchTerm.toLowerCase().split(/\s+/);
+    return searchWords.every(searchWord => 
+      words.some(word => word.includes(searchWord))
+    );
+  };
+
   return (
     <>
       <Button
@@ -79,17 +89,28 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
                 key={verse.number}
                 value={`${verse.text} ${verse.translation} ${verse.number}`}
                 onSelect={() => handleSelect(verse.number)}
+                className={({ active }) =>
+                  `flex flex-col gap-2 ${active ? 'bg-accent' : 'transparent'}`
+                }
+                filter={(value, search) => {
+                  if (matchesSearch(verse.translation, search) || matchesSearch(verse.text, search)) {
+                    return 1;
+                  }
+                  return 0;
+                }}
               >
-                <Search className="mr-2 h-4 w-4" />
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm">{verse.translation}</span>
-                  <span className="text-xs text-muted-foreground arabic-text">
-                    {verse.text}
+                <div className="flex items-start gap-2">
+                  <Search className="h-4 w-4 mt-1" />
+                  <div className="flex flex-col gap-1 flex-1">
+                    <span className="text-sm">{verse.translation}</span>
+                    <span className="text-xs text-muted-foreground arabic-text">
+                      {verse.text}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    Verse {verse.number}
                   </span>
                 </div>
-                <span className="ml-auto text-xs text-muted-foreground">
-                  Verse {verse.number}
-                </span>
               </CommandItem>
             ))}
           </CommandGroup>
