@@ -1,7 +1,14 @@
-import React, { useState } from "react";
-import { Search } from "lucide-react";
+import React from "react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Search } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 
 interface VerseSearchProps {
@@ -13,63 +20,82 @@ interface VerseSearchProps {
 }
 
 const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = React.useState(false);
   const { toast } = useToast();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!searchTerm.trim()) {
-      return;
-    }
-
-    const searchTermLower = searchTerm.toLowerCase();
-    const foundVerse = verses.find(verse => 
-      verse.text.toLowerCase().includes(searchTermLower) || 
-      verse.translation.toLowerCase().includes(searchTermLower)
-    );
-
-    if (foundVerse) {
-      const verseElement = document.querySelector(`[data-verse="${foundVerse.number}"]`);
-      if (verseElement) {
-        verseElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-        
-        // Highlight effect
-        verseElement.classList.add('bg-primary/20');
-        setTimeout(() => {
-          verseElement.classList.remove('bg-primary/20');
-        }, 2000);
-
-        toast({
-          title: "Verse found",
-          description: `Scrolled to verse ${foundVerse.number}`,
-        });
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
       }
-    } else {
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const handleSelect = (verseNumber: number) => {
+    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+    if (verseElement) {
+      verseElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+      
+      // Highlight effect
+      verseElement.classList.add('bg-primary/20');
+      setTimeout(() => {
+        verseElement.classList.remove('bg-primary/20');
+      }, 2000);
+
       toast({
-        title: "No matches found",
-        description: "Try a different search term",
-        variant: "destructive",
+        title: "Verse found",
+        description: `Scrolled to verse ${verseNumber}`,
       });
     }
+    setOpen(false);
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex gap-2">
-      <Input
-        type="text"
-        placeholder="Search in this Surah..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full md:w-64"
-      />
-      <Button type="submit" variant="outline" size="icon">
-        <Search className="h-4 w-4" />
+    <>
+      <Button
+        variant="outline"
+        className="relative w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-96"
+        onClick={() => setOpen(true)}
+      >
+        <span className="hidden lg:inline-flex">Search in this Surah...</span>
+        <span className="inline-flex lg:hidden">Search...</span>
+        <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-7 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+          <span className="text-xs">⌘</span>K
+        </kbd>
       </Button>
-    </form>
+      <CommandDialog open={open} onOpenChange={setOpen}>
+        <CommandInput placeholder="Type to search verses..." />
+        <CommandList>
+          <CommandEmpty>No verses found.</CommandEmpty>
+          <CommandGroup heading="Verses">
+            {verses.map((verse) => (
+              <CommandItem
+                key={verse.number}
+                value={`${verse.text} ${verse.translation} ${verse.number}`}
+                onSelect={() => handleSelect(verse.number)}
+              >
+                <Search className="mr-2 h-4 w-4" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm">{verse.translation}</span>
+                  <span className="text-xs text-muted-foreground arabic-text">
+                    {verse.text}
+                  </span>
+                </div>
+                <span className="ml-auto text-xs text-muted-foreground">
+                  Verse {verse.number}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </>
   );
 };
 
