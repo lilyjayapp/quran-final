@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
+import VerseSearch from "../components/VerseSearch";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -32,7 +33,7 @@ const SurahPage = () => {
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-gray-200">
         <div className="container mx-auto py-4">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <Button
                 variant="outline"
                 onClick={() => navigate('/')}
@@ -41,6 +42,7 @@ const SurahPage = () => {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Surah List
               </Button>
+              {surah && <VerseSearch verses={surah.verses} />}
             </div>
             
             {surah && (
