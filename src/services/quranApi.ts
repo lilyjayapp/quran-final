@@ -41,7 +41,7 @@ export const useSurahs = () => {
 };
 
 export const useSurahDetail = (surahNumber: number) => {
-  const selectedLanguage = localStorage.getItem('selectedLanguage') || 'en.asad';
+  const selectedLanguage = 'en.sahih'; // Changed from localStorage to directly use modern English
   
   return useQuery({
     queryKey: ["surah", surahNumber, selectedLanguage],
