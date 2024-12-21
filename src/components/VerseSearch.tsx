@@ -89,15 +89,7 @@ const VerseSearch: React.FC<VerseSearchProps> = ({ verses }) => {
                 key={verse.number}
                 value={`${verse.text} ${verse.translation} ${verse.number}`}
                 onSelect={() => handleSelect(verse.number)}
-                className={({ active }) =>
-                  `flex flex-col gap-2 ${active ? 'bg-accent' : 'transparent'}`
-                }
-                filter={(value, search) => {
-                  if (matchesSearch(verse.translation, search) || matchesSearch(verse.text, search)) {
-                    return 1;
-                  }
-                  return 0;
-                }}
+                className="flex flex-col gap-2"
               >
                 <div className="flex items-start gap-2">
                   <Search className="h-4 w-4 mt-1" />

@@ -19,33 +19,49 @@ export const speak = (text: string, onEnd?: () => void) => {
   
   // Configure for optimal clarity
   currentUtterance.rate = 0.9; // Slightly slower for better clarity
-  currentUtterance.pitch = 0.9; // Slightly lower pitch for male voice
+  currentUtterance.pitch = 0.8; // Even lower pitch for male voice
   currentUtterance.volume = 1;
-  currentUtterance.lang = 'en-US';
 
   // Wait for voices to be loaded
   const loadVoices = () => {
     const voices = speechSynthesis.getVoices();
-    console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang, gender: v.voiceURI.toLowerCase().includes('male') ? 'male' : 'female' })));
     
-    // Try to find a good male English voice in this order:
-    // 1. Microsoft David
-    // 2. Google US English Male
-    // 3. Any male English voice
-    // 4. Any English voice as fallback
-    const preferredVoice = voices.find(voice => 
-      voice.name.includes('David') && voice.lang.includes('en')
-    ) || voices.find(voice =>
-      voice.name.includes('Google') && voice.name.toLowerCase().includes('male') && voice.lang.includes('en')
-    ) || voices.find(voice =>
-      voice.voiceURI.toLowerCase().includes('male') && voice.lang.includes('en')
-    ) || voices.find(voice =>
-      voice.lang.includes('en')
+    // Filter for English male voices first
+    const maleVoices = voices.filter(voice => 
+      voice.lang.startsWith('en') && (
+        // Common identifiers for male voices
+        voice.name.toLowerCase().includes('male') ||
+        voice.name.includes('David') ||
+        voice.name.includes('James') ||
+        voice.name.includes('John') ||
+        voice.name.includes('Paul')
+      )
     );
 
-    if (preferredVoice) {
-      console.log('Selected voice:', preferredVoice.name);
-      currentUtterance.voice = preferredVoice;
+    // Log available voices for debugging
+    console.log('Available male voices:', maleVoices.map(v => ({
+      name: v.name,
+      lang: v.lang
+    })));
+
+    // Select the best available voice
+    const selectedVoice = 
+      // Try Microsoft David first
+      voices.find(v => v.name.includes('David')) ||
+      // Then any Microsoft male voice
+      voices.find(v => v.name.includes('Microsoft') && v.name.toLowerCase().includes('male')) ||
+      // Then any Google male voice
+      voices.find(v => v.name.includes('Google') && v.name.toLowerCase().includes('male')) ||
+      // Then any male voice
+      maleVoices[0] ||
+      // Fallback to any English voice
+      voices.find(v => v.lang.startsWith('en'));
+
+    if (selectedVoice) {
+      console.log('Selected voice:', selectedVoice.name);
+      currentUtterance.voice = selectedVoice;
+      // Adjust language to match selected voice
+      currentUtterance.lang = selectedVoice.lang;
     }
 
     if (onEnd) {
