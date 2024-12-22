@@ -1,17 +1,16 @@
 export const getAudioUrl = (verseNumber: number | undefined, reciter: string) => {
   if (!verseNumber) return "";
   
-  const isArabic = reciter.startsWith("ar.");
+  // Ensure we're using the correct reciter identifier
   const baseUrl = `https://cdn.islamic.network/quran/audio/128/${reciter}/`;
-    
-  // For now, only support Arabic audio as English audio translations are not consistently available
+  const url = `${baseUrl}${verseNumber}.mp3`;
+  
   console.log('Audio URL Generation:', {
     reciter,
-    isArabic,
-    url: `${baseUrl}${verseNumber}.mp3`
+    url
   });
   
-  return `${baseUrl}${verseNumber}.mp3`;
+  return url;
 };
 
 export const handleAudioError = (audioElement: HTMLAudioElement | null) => {

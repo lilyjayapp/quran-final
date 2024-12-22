@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { getAudioUrl } from '@/utils/audioUtils';
 import { speak, stopSpeaking } from '@/utils/ttsUtils';
+import { toast } from 'sonner';
 
 interface QueuedVerse {
   number: number;
@@ -22,7 +23,7 @@ export const useAudioQueue = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const audioRef = useRef<HTMLAudioElement>(new Audio());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const playCurrentVerse = async () => {
     if (!verses[currentIndex]) return;
@@ -38,12 +39,18 @@ export const useAudioQueue = ({
         const audioUrl = getAudioUrl(verses[currentIndex].number, selectedReciter);
         console.log('Playing Arabic audio URL:', audioUrl);
         
-        // Reset the audio element
-        audioRef.current.pause();
-        audioRef.current = new Audio(audioUrl);
+        // Create a new audio element for each verse
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.removeAttribute('src');
+          audioRef.current.load();
+        }
+        
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
         
         // Set up event listeners
-        audioRef.current.onended = () => {
+        audio.onended = () => {
           if (currentIndex < verses.length - 1) {
             setCurrentIndex(prev => prev + 1);
           } else {
@@ -52,19 +59,19 @@ export const useAudioQueue = ({
           }
         };
 
-        audioRef.current.oncanplay = () => {
+        audio.oncanplay = () => {
           setIsLoading(false);
         };
 
-        audioRef.current.onerror = () => {
-          console.error('Audio loading error:', audioRef.current.error);
+        audio.onerror = (e) => {
+          console.error('Audio loading error:', e);
+          toast.error('Error loading audio. Please try again.');
           setIsLoading(false);
           setIsPlaying(false);
         };
 
-        // Start loading and playing
-        await audioRef.current.load();
-        await audioRef.current.play();
+        // Start playing
+        await audio.play();
       } else {
         stopSpeaking();
         speak(verses[currentIndex].translation, () => {
@@ -79,6 +86,7 @@ export const useAudioQueue = ({
       }
     } catch (error) {
       console.error('Playback error:', error);
+      toast.error('Error playing audio. Please try again.');
       setIsLoading(false);
       setIsPlaying(false);
     }
@@ -88,18 +96,23 @@ export const useAudioQueue = ({
     if (isPlaying) {
       playCurrentVerse();
     } else {
-      if (recitationLanguage.startsWith("ar.")) {
+      if (audioRef.current) {
         audioRef.current.pause();
-      } else {
+      }
+      if (!recitationLanguage.startsWith("ar.")) {
         stopSpeaking();
       }
     }
     
     return () => {
-      audioRef.current.pause();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeAttribute('src');
+        audioRef.current.load();
+      }
       stopSpeaking();
     };
-  }, [currentIndex, isPlaying, recitationLanguage]);
+  }, [currentIndex, isPlaying, recitationLanguage, selectedReciter]);
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
@@ -108,7 +121,11 @@ export const useAudioQueue = ({
   const reset = () => {
     setCurrentIndex(0);
     setIsPlaying(false);
-    audioRef.current.pause();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+    }
     stopSpeaking();
     if (onVerseChange) {
       onVerseChange(verses[0].number);
@@ -117,8 +134,10 @@ export const useAudioQueue = ({
 
   const repeatCurrentVerse = () => {
     if (recitationLanguage.startsWith("ar.")) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play();
+      }
     } else {
       stopSpeaking();
       speak(verses[currentIndex].translation);
