@@ -63,7 +63,7 @@ const SurahPage = () => {
         </div>
       </div>
       
-      <div className="container pt-64 pb-16">
+      <div className="container pt-80 pb-16">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
