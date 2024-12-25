@@ -32,6 +32,32 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     handleLanguageChange,
   } = useAudioState();
 
+  const scrollToVerse = (verseNumber: number) => {
+    // Only scroll if we're playing
+    if (!isPlaying) return;
+    
+    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+    if (verseElement) {
+      // Get the header height
+      const headerElement = document.querySelector('.fixed');
+      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
+      
+      // Calculate the scroll position
+      const elementRect = verseElement.getBoundingClientRect();
+      const absoluteElementTop = elementRect.top + window.pageYOffset;
+      const middle = window.innerHeight / 2;
+      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
+      
+      // Add a slight delay to ensure proper positioning
+      setTimeout(() => {
+        window.scrollTo({
+          top: Math.max(0, scrollTo),
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  };
+
   const {
     isPlaying,
     isLoading,
@@ -47,26 +73,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        
-        // First, scroll the verse into view to get its position
-        const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-        if (verseElement) {
-          // Get the header height
-          const headerElement = document.querySelector('.fixed');
-          const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
-          
-          // Calculate the scroll position
-          const elementRect = verseElement.getBoundingClientRect();
-          const absoluteElementTop = elementRect.top + window.pageYOffset;
-          const middle = window.innerHeight / 2;
-          const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
-          
-          // Smooth scroll to position
-          window.scrollTo({
-            top: Math.max(0, scrollTo),
-            behavior: 'smooth'
-          });
-        }
+        scrollToVerse(verseNumber);
       }
     },
   });
