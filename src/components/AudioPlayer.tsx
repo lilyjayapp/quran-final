@@ -7,6 +7,7 @@ import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
+import VerseScroller from "./audio/VerseScroller";
 
 interface AudioPlayerProps {
   verses: {
@@ -44,90 +45,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     recitationLanguage,
     selectedReciter,
-    onVerseChange: (verseNumber) => {
-      if (onVerseChange) {
-        onVerseChange(verseNumber);
-      }
-      
-      // Enhanced scrolling logic with debug logging
-      const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-      console.log('Verse element found:', verseElement ? 'yes' : 'no', { verseNumber });
-      
-      if (verseElement) {
-        // Find all possible scrollable containers
-        const scrollableContainers = findScrollableContainers(verseElement);
-        console.log('Found scrollable containers:', scrollableContainers.length, {
-          containers: scrollableContainers.map(container => ({
-            tagName: container.tagName,
-            className: container.className,
-            scrollHeight: container.scrollHeight,
-            clientHeight: container.clientHeight,
-            overflowY: window.getComputedStyle(container).overflowY
-          }))
-        });
-        
-        // Try to scroll each container that might be relevant
-        scrollableContainers.forEach((container, index) => {
-          try {
-            const elementRect = verseElement.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            
-            console.log(`Attempting to scroll container ${index}:`, {
-              containerType: container.tagName,
-              elementTop: elementRect.top,
-              containerTop: containerRect.top,
-              containerHeight: containerRect.height,
-              elementHeight: elementRect.height,
-              currentScroll: container.scrollTop
-            });
-
-            // Calculate the scroll position to center the verse
-            const scrollTop = elementRect.top + container.scrollTop - 
-              (containerRect.height / 2) + (elementRect.height / 2);
-
-            // Force scroll using both methods
-            if (container instanceof HTMLElement) {
-              container.style.scrollBehavior = 'smooth';
-              container.scrollTop = scrollTop;
-              console.log(`Applied scroll to container ${index}:`, {
-                newScrollTop: scrollTop,
-                actualScrollTop: container.scrollTop
-              });
-            }
-            
-            // Also try scrollIntoView as a fallback
-            verseElement.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
-            });
-          } catch (error) {
-            console.error(`Scroll error for container ${index}:`, error);
-          }
-        });
-      }
-    },
+    onVerseChange
   });
-
-  // Helper function to find all possible scrollable containers
-  const findScrollableContainers = (element: Element): HTMLElement[] => {
-    const containers: HTMLElement[] = [];
-    let parent = element.parentElement;
-    
-    while (parent) {
-      const hasVerticalScroll = parent.scrollHeight > parent.clientHeight;
-      const style = window.getComputedStyle(parent);
-      const isScrollable = ['auto', 'scroll'].includes(style.overflowY);
-      
-      if (hasVerticalScroll || isScrollable) {
-        containers.push(parent as HTMLElement);
-      }
-      parent = parent.parentElement;
-    }
-    
-    // Always include document.documentElement as a fallback
-    containers.push(document.documentElement);
-    return containers;
-  };
 
   const handleLanguageSelect = (value: string) => {
     stopSpeaking();
@@ -204,6 +123,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       </div>
       <AudioTranslationDisplay 
         translation={verses[currentIndex]?.translation} 
+      />
+      <VerseScroller 
+        currentVerseNumber={verses[currentIndex]?.number || 1}
       />
     </AudioContainer>
   );
