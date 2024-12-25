@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAudioQueue } from "@/hooks/useAudioQueue";
 import { useAudioState } from "@/hooks/useAudioState";
 import { speak, stopSpeaking } from "@/utils/ttsUtils";
-import { useIsMobile } from "@/hooks/use-mobile";
 import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
@@ -25,7 +24,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onVerseChange,
 }) => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   
   const {
     recitationLanguage,
@@ -48,17 +46,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const elementRect = verseElement.getBoundingClientRect();
       const absoluteElementTop = elementRect.top + window.pageYOffset;
       const middle = window.innerHeight / 2;
+      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
       
-      // Add padding below header for mobile devices
-      const mobilePadding = isMobile ? headerHeight + 100 : 0;
-      const scrollTo = absoluteElementTop - headerHeight + (isMobile ? mobilePadding : -middle + (elementRect.height / 2));
-      
-      requestAnimationFrame(() => {
+      // Add a slight delay to ensure proper positioning
+      setTimeout(() => {
         window.scrollTo({
           top: Math.max(0, scrollTo),
           behavior: 'smooth'
         });
-      });
+      }, 100);
     }
   };
 
