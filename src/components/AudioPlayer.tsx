@@ -33,29 +33,28 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioState();
 
   const scrollToVerse = (verseNumber: number) => {
-    // Only scroll if we're playing
+    // Don't scroll if we're not playing
     if (!isPlaying) return;
     
-    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-    if (verseElement) {
-      // Get the header height
+    // Wait for any DOM updates to complete
+    requestAnimationFrame(() => {
+      const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+      if (!verseElement) return;
+
       const headerElement = document.querySelector('.fixed');
-      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
+      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
       
-      // Calculate the scroll position
       const elementRect = verseElement.getBoundingClientRect();
-      const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const middle = window.innerHeight / 2;
-      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
+      const windowHeight = window.innerHeight;
       
-      // Add a slight delay to ensure proper positioning
-      setTimeout(() => {
-        window.scrollTo({
-          top: Math.max(0, scrollTo),
-          behavior: 'smooth'
-        });
-      }, 100);
-    }
+      // Calculate position to center the verse in the visible area below the header
+      const targetPosition = window.pageYOffset + elementRect.top - headerHeight - (windowHeight - headerHeight - elementRect.height) / 2;
+      
+      window.scrollTo({
+        top: Math.max(0, targetPosition),
+        behavior: 'smooth'
+      });
+    });
   };
 
   const {
@@ -73,7 +72,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        scrollToVerse(verseNumber);
+        // Only scroll if we're actually playing
+        if (isPlaying) {
+          scrollToVerse(verseNumber);
+        }
       }
     },
   });
