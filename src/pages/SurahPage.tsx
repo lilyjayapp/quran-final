@@ -32,27 +32,28 @@ const SurahPage = () => {
     <div className="min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-gray-200">
         <div className="container mx-auto py-2">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4 flex-1">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/')}
-                  className="flex items-center gap-2 shrink-0"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Surah List
-                </Button>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center space-x-2 w-full">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="shrink-0 flex items-center gap-1 text-sm"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Surah List</span>
+                <span className="sm:hidden">Back</span>
+              </Button>
+              <div className="flex-1">
                 {surah && <VerseSearch verses={surah.verses} />}
               </div>
             </div>
             
             {surah && (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1">
                 <div className="text-center">
-                  <h1 className="text-2xl font-bold">{surah.englishName}</h1>
-                  <p className="text-gray-600 text-sm">{surah.englishNameTranslation}</p>
-                  <p className="arabic-text text-3xl mt-1">{surah.name}</p>
+                  <h1 className="text-lg font-bold sm:text-xl">{surah.englishName}</h1>
+                  <p className="text-gray-600 text-xs sm:text-sm">{surah.englishNameTranslation}</p>
+                  <p className="arabic-text text-2xl sm:text-3xl">{surah.name}</p>
                 </div>
                 <AudioPlayer 
                   verses={surah.verses}
@@ -65,7 +66,7 @@ const SurahPage = () => {
         </div>
       </div>
       
-      <div className="container pt-64 pb-16">
+      <div className="container pt-48 pb-16">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
