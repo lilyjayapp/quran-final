@@ -47,20 +47,26 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        // Add a slight delay to ensure the header is fully rendered
-        setTimeout(() => {
-          const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-          if (verseElement) {
-            const headerHeight = 200; // Approximate header height
-            const elementPosition = verseElement.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
-            
-            window.scrollTo({
-              top: offsetPosition,
-              behavior: 'smooth'
-            });
-          }
-        }, 100);
+        
+        // First, scroll the verse into view to get its position
+        const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+        if (verseElement) {
+          // Get the header height
+          const headerElement = document.querySelector('.fixed');
+          const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
+          
+          // Calculate the scroll position
+          const elementRect = verseElement.getBoundingClientRect();
+          const absoluteElementTop = elementRect.top + window.pageYOffset;
+          const middle = window.innerHeight / 2;
+          const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
+          
+          // Smooth scroll to position
+          window.scrollTo({
+            top: Math.max(0, scrollTo),
+            behavior: 'smooth'
+          });
+        }
       }
     },
   });
