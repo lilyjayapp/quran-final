@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioQueue } from "@/hooks/useAudioQueue";
 import { useAudioState } from "@/hooks/useAudioState";
@@ -7,7 +7,6 @@ import AudioContainer from "./audio/AudioContainer";
 import AudioControls from "./AudioControls";
 import AudioSelectors from "./audio/AudioSelectors";
 import AudioTranslationDisplay from "./audio/AudioTranslationDisplay";
-import VerseScroller from "./audio/VerseScroller";
 
 interface AudioPlayerProps {
   verses: {
@@ -45,7 +44,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     verses,
     recitationLanguage,
     selectedReciter,
-    onVerseChange
+    onVerseChange: (verseNumber) => {
+      if (onVerseChange) {
+        onVerseChange(verseNumber);
+      }
+    },
   });
 
   const handleLanguageSelect = (value: string) => {
@@ -123,9 +126,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       </div>
       <AudioTranslationDisplay 
         translation={verses[currentIndex]?.translation} 
-      />
-      <VerseScroller 
-        currentVerseNumber={verses[currentIndex]?.number || 1}
       />
     </AudioContainer>
   );
