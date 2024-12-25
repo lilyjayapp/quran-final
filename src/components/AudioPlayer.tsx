@@ -49,11 +49,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const absoluteElementTop = elementRect.top + window.pageYOffset;
       const middle = window.innerHeight / 2;
       
-      // Add extra padding for mobile devices
-      const mobilePadding = isMobile ? headerHeight + 20 : 0;
-      const scrollTo = absoluteElementTop - (isMobile ? mobilePadding : headerHeight - middle + (elementRect.height / 2));
+      // Add padding below header for mobile devices
+      const mobilePadding = isMobile ? headerHeight + 100 : 0;
+      const scrollTo = absoluteElementTop - headerHeight + (isMobile ? mobilePadding : -middle + (elementRect.height / 2));
       
-      // Add a slight delay to ensure proper positioning
       requestAnimationFrame(() => {
         window.scrollTo({
           top: Math.max(0, scrollTo),
