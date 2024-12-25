@@ -32,43 +32,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     handleLanguageChange,
   } = useAudioState();
 
-  const scrollToVerse = (verseNumber: number) => {
-    if (!isPlaying) return;
-    
-    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-    if (!verseElement) return;
-
-    try {
-      // Get the header height
-      const headerElement = document.querySelector('.fixed');
-      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
-      
-      // Get the verse element's position
-      const verseRect = verseElement.getBoundingClientRect();
-      
-      // Calculate the target scroll position to keep verse at top
-      const targetPosition = window.pageYOffset + verseRect.top - headerHeight - 50;
-
-      console.log('Scrolling in Wix:', {
-        verseNumber,
-        targetPosition,
-        headerHeight,
-        currentScroll: window.pageYOffset,
-        verseTop: verseRect.top,
-        windowHeight: window.innerHeight
-      });
-
-      // Scroll the verse to top of viewport
-      window.scrollTo({
-        top: Math.max(0, targetPosition),
-        behavior: 'smooth'
-      });
-
-    } catch (error) {
-      console.error('Scroll error:', error);
-    }
-  };
-
   const {
     isPlaying,
     isLoading,
@@ -84,7 +47,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        scrollToVerse(verseNumber);
       }
     },
   });
