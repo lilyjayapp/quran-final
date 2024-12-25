@@ -46,41 +46,24 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       // Get the verse element's position
       const verseRect = verseElement.getBoundingClientRect();
       
-      // Calculate the target scroll position
-      // We want the verse to be positioned just below the header
-      const targetPosition = window.pageYOffset + verseRect.top - headerHeight - 20;
+      // Calculate the target scroll position to keep verse at top
+      const targetPosition = window.pageYOffset + verseRect.top - headerHeight - 50;
 
       console.log('Scrolling in Wix:', {
         verseNumber,
         targetPosition,
         headerHeight,
         currentScroll: window.pageYOffset,
-        verseTop: verseRect.top
+        verseTop: verseRect.top,
+        windowHeight: window.innerHeight
       });
 
-      // Try different scrolling methods for maximum compatibility
-      try {
-        // Method 1: scrollIntoView with smooth behavior
-        verseElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-        
-        // Additional offset to account for header
-        setTimeout(() => {
-          window.scrollBy({
-            top: -headerHeight - 20,
-            behavior: 'smooth'
-          });
-        }, 100);
-      } catch (e) {
-        console.log('Fallback to manual scroll');
-        // Method 2: Direct window scroll
-        window.scrollTo({
-          top: Math.max(0, targetPosition),
-          behavior: 'smooth'
-        });
-      }
+      // Scroll the verse to top of viewport
+      window.scrollTo({
+        top: Math.max(0, targetPosition),
+        behavior: 'smooth'
+      });
+
     } catch (error) {
       console.error('Scroll error:', error);
     }
