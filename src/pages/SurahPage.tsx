@@ -12,6 +12,30 @@ const SurahPage = () => {
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
   const [currentVerseNumber, setCurrentVerseNumber] = useState<number | null>(null);
 
+  const handleVerseChange = (verseNumber: number) => {
+    setCurrentVerseNumber(verseNumber);
+    const verse = document.querySelector(`[data-verse="${verseNumber}"]`);
+    if (verse) {
+      // Calculate the scroll position to keep the verse at the top with some padding
+      const headerHeight = 180; // Adjust this value based on your header height
+      const scrollPosition = verse.getBoundingClientRect().top + window.scrollY - headerHeight;
+      
+      // Smooth scroll to position
+      window.scrollTo({
+        top: scrollPosition,
+        behavior: 'smooth'
+      });
+
+      // Log for debugging
+      console.log('Scrolling to verse:', {
+        verseNumber,
+        scrollPosition,
+        headerHeight,
+        verseTop: verse.getBoundingClientRect().top
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -58,7 +82,7 @@ const SurahPage = () => {
                 <AudioPlayer 
                   verses={surah.verses}
                   currentSurahNumber={surah.number}
-                  onVerseChange={setCurrentVerseNumber}
+                  onVerseChange={handleVerseChange}
                 />
               </div>
             )}
