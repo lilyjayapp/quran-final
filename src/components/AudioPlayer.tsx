@@ -49,25 +49,51 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         onVerseChange(verseNumber);
       }
       
-      // Enhanced scrolling logic for Wix embedded context
+      // Enhanced scrolling logic with debug logging
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+      console.log('Verse element found:', verseElement ? 'yes' : 'no', { verseNumber });
+      
       if (verseElement) {
         // Find all possible scrollable containers
         const scrollableContainers = findScrollableContainers(verseElement);
+        console.log('Found scrollable containers:', scrollableContainers.length, {
+          containers: scrollableContainers.map(container => ({
+            tagName: container.tagName,
+            className: container.className,
+            scrollHeight: container.scrollHeight,
+            clientHeight: container.clientHeight,
+            overflowY: window.getComputedStyle(container).overflowY
+          }))
+        });
         
         // Try to scroll each container that might be relevant
-        scrollableContainers.forEach(container => {
+        scrollableContainers.forEach((container, index) => {
           try {
             const elementRect = verseElement.getBoundingClientRect();
             const containerRect = container.getBoundingClientRect();
             
+            console.log(`Attempting to scroll container ${index}:`, {
+              containerType: container.tagName,
+              elementTop: elementRect.top,
+              containerTop: containerRect.top,
+              containerHeight: containerRect.height,
+              elementHeight: elementRect.height,
+              currentScroll: container.scrollTop
+            });
+
             // Calculate the scroll position to center the verse
             const scrollTop = elementRect.top + container.scrollTop - 
               (containerRect.height / 2) + (elementRect.height / 2);
 
-            // Force scroll the container
-            container.style.scrollBehavior = 'smooth';
-            container.scrollTop = scrollTop;
+            // Force scroll using both methods
+            if (container instanceof HTMLElement) {
+              container.style.scrollBehavior = 'smooth';
+              container.scrollTop = scrollTop;
+              console.log(`Applied scroll to container ${index}:`, {
+                newScrollTop: scrollTop,
+                actualScrollTop: container.scrollTop
+              });
+            }
             
             // Also try scrollIntoView as a fallback
             verseElement.scrollIntoView({
@@ -75,7 +101,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               block: 'center'
             });
           } catch (error) {
-            console.error('Scroll error:', error);
+            console.error(`Scroll error for container ${index}:`, error);
           }
         });
       }
@@ -83,8 +109,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   });
 
   // Helper function to find all possible scrollable containers
-  const findScrollableContainers = (element: Element): Element[] => {
-    const containers: Element[] = [];
+  const findScrollableContainers = (element: Element): HTMLElement[] => {
+    const containers: HTMLElement[] = [];
     let parent = element.parentElement;
     
     while (parent) {
@@ -93,7 +119,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const isScrollable = ['auto', 'scroll'].includes(style.overflowY);
       
       if (hasVerticalScroll || isScrollable) {
-        containers.push(parent);
+        containers.push(parent as HTMLElement);
       }
       parent = parent.parentElement;
     }
