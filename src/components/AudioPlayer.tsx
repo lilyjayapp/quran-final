@@ -33,6 +33,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioState();
 
   const scrollToVerse = (verseNumber: number) => {
+    // Only scroll if we're playing
+    if (!isPlaying) return;
+    
     const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
     if (verseElement) {
       // Get the header height
@@ -42,13 +45,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       // Calculate the scroll position
       const elementRect = verseElement.getBoundingClientRect();
       const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const middle = window.innerHeight / 3; // Adjusted to show more context
+      const middle = window.innerHeight / 2;
       const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
       
-      window.scrollTo({
-        top: Math.max(0, scrollTo),
-        behavior: 'smooth'
-      });
+      // Add a slight delay to ensure proper positioning
+      setTimeout(() => {
+        window.scrollTo({
+          top: Math.max(0, scrollTo),
+          behavior: 'smooth'
+        });
+      }, 100);
     }
   };
 
