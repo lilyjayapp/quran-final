@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioQueue } from "@/hooks/useAudioQueue";
 import { useAudioState } from "@/hooks/useAudioState";
@@ -48,8 +48,49 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (onVerseChange) {
         onVerseChange(verseNumber);
       }
+      
+      // Enhanced scrolling logic for both standalone and embedded contexts
+      const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+      if (verseElement) {
+        // Try to find the closest scrollable container
+        const scrollableContainer = findScrollableParent(verseElement);
+        
+        if (scrollableContainer) {
+          const elementRect = verseElement.getBoundingClientRect();
+          const containerRect = scrollableContainer.getBoundingClientRect();
+          
+          // Calculate the scroll position to center the verse
+          const scrollTop = elementRect.top + scrollableContainer.scrollTop - 
+            (containerRect.height / 2) + (elementRect.height / 2);
+
+          // Smooth scroll to the verse
+          scrollableContainer.scrollTo({
+            top: scrollTop,
+            behavior: 'smooth'
+          });
+        }
+      }
     },
   });
+
+  // Helper function to find the closest scrollable parent
+  const findScrollableParent = (element: Element): Element | null => {
+    let parent = element.parentElement;
+    
+    while (parent) {
+      const hasVerticalScroll = parent.scrollHeight > parent.clientHeight;
+      const style = window.getComputedStyle(parent);
+      const isScrollable = ['auto', 'scroll'].includes(style.overflowY);
+      
+      if (hasVerticalScroll && isScrollable) {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+    
+    // If no scrollable parent found, return document.documentElement
+    return document.documentElement;
+  };
 
   const handleLanguageSelect = (value: string) => {
     stopSpeaking();
