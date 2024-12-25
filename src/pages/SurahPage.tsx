@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSurahDetail } from "../services/quranApi";
 import AudioPlayer from "../components/AudioPlayer";
@@ -11,6 +11,53 @@ const SurahPage = () => {
   const navigate = useNavigate();
   const { data: surah, isLoading, error } = useSurahDetail(Number(id));
   const [currentVerseNumber, setCurrentVerseNumber] = useState<number | null>(null);
+
+  const handleVerseChange = (verseNumber: number) => {
+    setCurrentVerseNumber(verseNumber);
+    
+    // Add a small delay to ensure DOM is updated
+    setTimeout(() => {
+      const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+      if (verseElement) {
+        // Calculate the scroll position
+        const headerOffset = 180; // Adjust this value based on your header height
+        const elementPosition = verseElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        // Log scroll details for debugging
+        console.log('Scroll details:', {
+          verseNumber,
+          elementPosition,
+          offsetPosition,
+          windowInnerHeight: window.innerHeight,
+          documentHeight: document.documentElement.scrollHeight
+        });
+
+        // Try to detect if we're in Wix iframe
+        const isInWixIframe = window.top !== window.self;
+        
+        if (isInWixIframe) {
+          // Use scrollIntoView for Wix iframe
+          verseElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          
+          // Additional scroll adjustment for header
+          window.scrollBy({
+            top: -headerOffset,
+            behavior: 'smooth'
+          });
+        } else {
+          // Regular scroll for non-Wix environments
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 100);
+  };
 
   if (isLoading) {
     return (
@@ -58,7 +105,7 @@ const SurahPage = () => {
                 <AudioPlayer 
                   verses={surah.verses}
                   currentSurahNumber={surah.number}
-                  onVerseChange={setCurrentVerseNumber}
+                  onVerseChange={handleVerseChange}
                 />
               </div>
             )}
