@@ -33,26 +33,29 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioState();
 
   const scrollToVerse = (verseNumber: number) => {
-    // Don't scroll if we're not playing
+    // Only scroll if we're playing
     if (!isPlaying) return;
     
     const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-    if (!verseElement) return;
-
-    const headerElement = document.querySelector('.fixed');
-    const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
-    
-    // Add extra padding to ensure the verse is clearly visible
-    const padding = 100; // Increased padding for better visibility
-    const scrollPosition = verseElement.getBoundingClientRect().top + 
-                          window.pageYOffset - 
-                          headerHeight - 
-                          padding;
-    
-    window.scrollTo({
-      top: Math.max(0, scrollPosition),
-      behavior: 'smooth'
-    });
+    if (verseElement) {
+      // Get the header height
+      const headerElement = document.querySelector('.fixed');
+      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
+      
+      // Calculate the scroll position
+      const elementRect = verseElement.getBoundingClientRect();
+      const absoluteElementTop = elementRect.top + window.pageYOffset;
+      const middle = window.innerHeight / 2;
+      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
+      
+      // Add a slight delay to ensure proper positioning
+      setTimeout(() => {
+        window.scrollTo({
+          top: Math.max(0, scrollTo),
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
   };
 
   const {
@@ -70,10 +73,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        // Only scroll if we're actually playing
-        if (isPlaying) {
-          scrollToVerse(verseNumber);
-        }
+        scrollToVerse(verseNumber);
       }
     },
   });
