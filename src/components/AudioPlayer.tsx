@@ -33,28 +33,56 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioState();
 
   const scrollToVerse = (verseNumber: number) => {
-    // Only scroll if we're playing
     if (!isPlaying) return;
     
     const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-    if (verseElement) {
+    if (!verseElement) return;
+
+    try {
       // Get the header height
       const headerElement = document.querySelector('.fixed');
       const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
       
-      // Calculate the scroll position
-      const elementRect = verseElement.getBoundingClientRect();
-      const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const middle = window.innerHeight / 2;
-      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
+      // Get the verse element's position
+      const verseRect = verseElement.getBoundingClientRect();
       
-      // Add a slight delay to ensure proper positioning
-      setTimeout(() => {
+      // Calculate the target scroll position
+      // We want the verse to be positioned just below the header
+      const targetPosition = window.pageYOffset + verseRect.top - headerHeight - 20;
+
+      console.log('Scrolling in Wix:', {
+        verseNumber,
+        targetPosition,
+        headerHeight,
+        currentScroll: window.pageYOffset,
+        verseTop: verseRect.top
+      });
+
+      // Try different scrolling methods for maximum compatibility
+      try {
+        // Method 1: scrollIntoView with smooth behavior
+        verseElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+        
+        // Additional offset to account for header
+        setTimeout(() => {
+          window.scrollBy({
+            top: -headerHeight - 20,
+            behavior: 'smooth'
+          });
+        }, 100);
+      } catch (e) {
+        console.log('Fallback to manual scroll');
+        // Method 2: Direct window scroll
         window.scrollTo({
-          top: Math.max(0, scrollTo),
+          top: Math.max(0, targetPosition),
           behavior: 'smooth'
         });
-      }, 100);
+      }
+    } catch (error) {
+      console.error('Scroll error:', error);
     }
   };
 
