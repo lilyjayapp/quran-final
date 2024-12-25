@@ -49,32 +49,42 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         onVerseChange(verseNumber);
       }
       
-      // Enhanced scrolling logic for both standalone and embedded contexts
+      // Enhanced scrolling logic for Wix embedded context
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
-        // Try to find the closest scrollable container
-        const scrollableContainer = findScrollableParent(verseElement);
+        // Find all possible scrollable containers
+        const scrollableContainers = findScrollableContainers(verseElement);
         
-        if (scrollableContainer) {
-          const elementRect = verseElement.getBoundingClientRect();
-          const containerRect = scrollableContainer.getBoundingClientRect();
-          
-          // Calculate the scroll position to center the verse
-          const scrollTop = elementRect.top + scrollableContainer.scrollTop - 
-            (containerRect.height / 2) + (elementRect.height / 2);
+        // Try to scroll each container that might be relevant
+        scrollableContainers.forEach(container => {
+          try {
+            const elementRect = verseElement.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            // Calculate the scroll position to center the verse
+            const scrollTop = elementRect.top + container.scrollTop - 
+              (containerRect.height / 2) + (elementRect.height / 2);
 
-          // Smooth scroll to the verse
-          scrollableContainer.scrollTo({
-            top: scrollTop,
-            behavior: 'smooth'
-          });
-        }
+            // Force scroll the container
+            container.style.scrollBehavior = 'smooth';
+            container.scrollTop = scrollTop;
+            
+            // Also try scrollIntoView as a fallback
+            verseElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          } catch (error) {
+            console.error('Scroll error:', error);
+          }
+        });
       }
     },
   });
 
-  // Helper function to find the closest scrollable parent
-  const findScrollableParent = (element: Element): Element | null => {
+  // Helper function to find all possible scrollable containers
+  const findScrollableContainers = (element: Element): Element[] => {
+    const containers: Element[] = [];
     let parent = element.parentElement;
     
     while (parent) {
@@ -82,14 +92,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const style = window.getComputedStyle(parent);
       const isScrollable = ['auto', 'scroll'].includes(style.overflowY);
       
-      if (hasVerticalScroll && isScrollable) {
-        return parent;
+      if (hasVerticalScroll || isScrollable) {
+        containers.push(parent);
       }
       parent = parent.parentElement;
     }
     
-    // If no scrollable parent found, return document.documentElement
-    return document.documentElement;
+    // Always include document.documentElement as a fallback
+    containers.push(document.documentElement);
+    return containers;
   };
 
   const handleLanguageSelect = (value: string) => {
