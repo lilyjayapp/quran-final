@@ -33,7 +33,7 @@ const SurahPage = () => {
       <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-gray-200">
         <div className="container mx-auto py-2">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center space-x-2 w-full">
+            <div className="flex items-center space-x-2 w-full md:justify-center md:max-w-3xl md:mx-auto">
               <Button
                 variant="outline"
                 onClick={() => navigate('/')}
@@ -43,13 +43,13 @@ const SurahPage = () => {
                 <span className="hidden sm:inline">Back to Surah List</span>
                 <span className="sm:hidden">Back</span>
               </Button>
-              <div className="flex-1">
+              <div className="flex-1 md:max-w-md">
                 {surah && <VerseSearch verses={surah.verses} />}
               </div>
             </div>
             
             {surah && (
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 md:max-w-3xl md:mx-auto">
                 <div className="text-center">
                   <h1 className="text-lg font-bold sm:text-xl">{surah.englishName}</h1>
                   <p className="text-gray-600 text-xs sm:text-sm">{surah.englishNameTranslation}</p>
