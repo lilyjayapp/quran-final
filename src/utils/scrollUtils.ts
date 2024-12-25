@@ -42,13 +42,16 @@ export const scrollToVerse = (verseNumber: number) => {
   const scrollableContainers = findScrollableContainers(verseElement);
   console.log('Found scrollable containers:', scrollableContainers.length);
 
+  // Calculate the position to keep verse near the top
+  const topOffset = 100; // Adjust this value to control how far from the top the verse should stay
+
   // Try each container, starting from the closest to the verse
-  scrollableContainers.forEach((container, index) => {
+  scrollableContainers.forEach((container) => {
     try {
       const elementRect = verseElement.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       
-      console.log(`Attempting to scroll container ${index}:`, {
+      console.log(`Attempting to scroll container:`, {
         containerType: container.tagName,
         elementTop: elementRect.top,
         containerTop: containerRect.top,
@@ -57,14 +60,15 @@ export const scrollToVerse = (verseNumber: number) => {
         currentScroll: container.scrollTop
       });
 
-      // Try multiple scroll methods
-      // 1. Direct scrollTop manipulation
+      // Calculate the scroll position to keep verse near the top
       if (container instanceof HTMLElement) {
-        const scrollTop = elementRect.top + container.scrollTop - 
-          (containerRect.height / 2) + (elementRect.height / 2);
+        const scrollTop = (verseElement as HTMLElement).offsetTop - topOffset;
         
         container.style.scrollBehavior = 'smooth';
-        container.scrollTop = scrollTop;
+        container.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth'
+        });
         
         // If in iframe, also try to scroll the iframe
         if (window.frameElement) {
@@ -72,25 +76,17 @@ export const scrollToVerse = (verseNumber: number) => {
             top: scrollTop,
             behavior: 'smooth'
           });
+          
+          // Send message to parent window
+          window.parent.postMessage({
+            type: 'scrollTo',
+            top: scrollTop,
+          }, '*');
         }
       }
       
-      // 2. scrollIntoView as backup
-      verseElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-      
-      // 3. Force scroll through postMessage if in iframe
-      if (window.frameElement) {
-        window.parent.postMessage({
-          type: 'scrollTo',
-          top: verseElement.offsetTop - (window.innerHeight / 2),
-        }, '*');
-      }
-      
     } catch (error) {
-      console.error(`Scroll error for container ${index}:`, error);
+      console.error(`Scroll error for container:`, error);
     }
   });
 };
