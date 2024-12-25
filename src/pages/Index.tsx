@@ -37,7 +37,7 @@ const Index = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-32">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl">Loading Surahs...</div>
       </div>
     );
@@ -45,48 +45,56 @@ const Index = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-32">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl text-red-500">Error loading Surahs</div>
       </div>
     );
   }
 
   return (
-    <div className="container pt-32 pb-16">
-      <h1 className="text-4xl font-bold text-center mb-8">The Noble Quran</h1>
-      <div className="max-w-md mx-auto mb-8 space-y-4">
-        <SearchBar surahs={surahs || []} />
-        <Select value={selectedReciter} onValueChange={handleReciterChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a reciter" />
-          </SelectTrigger>
-          <SelectContent>
-            {reciters.map((reciter) => (
-              <SelectItem key={reciter.id} value={reciter.identifier}>
-                {reciter.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="min-h-screen">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-gray-200">
+        <div className="container mx-auto py-4">
+          <div className="flex flex-col gap-4">
+            <h1 className="text-4xl font-bold text-center">The Noble Quran</h1>
+            <div className="max-w-md mx-auto space-y-4">
+              <SearchBar surahs={surahs || []} />
+              <Select value={selectedReciter} onValueChange={handleReciterChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a reciter" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reciters.map((reciter) => (
+                    <SelectItem key={reciter.id} value={reciter.identifier}>
+                      {reciter.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-        <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select translation language" />
-          </SelectTrigger>
-          <SelectContent>
-            {languages.map((language) => (
-              <SelectItem key={language.id} value={language.code}>
-                {language.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select translation language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {languages.map((language) => (
+                    <SelectItem key={language.id} value={language.code}>
+                      {language.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {surahs?.map((surah) => (
-          <SurahCard key={surah.number} {...surah} />
-        ))}
+      <div className="container pt-64 pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {surahs?.map((surah) => (
+            <SurahCard key={surah.number} {...surah} />
+          ))}
+        </div>
       </div>
     </div>
   );
