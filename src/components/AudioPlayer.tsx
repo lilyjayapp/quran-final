@@ -36,7 +36,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // Don't scroll if we're not playing
     if (!isPlaying) return;
     
-    // Wait for any DOM updates to complete
     requestAnimationFrame(() => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (!verseElement) return;
@@ -45,13 +44,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
       
       const elementRect = verseElement.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
       
-      // Calculate position to center the verse in the visible area below the header
-      const targetPosition = window.pageYOffset + elementRect.top - headerHeight - (windowHeight - headerHeight - elementRect.height) / 2;
+      // Add extra padding (e.g., 20px) to ensure the verse is clearly visible below the header
+      const padding = 20;
+      const scrollPosition = window.pageYOffset + elementRect.top - headerHeight - padding;
       
       window.scrollTo({
-        top: Math.max(0, targetPosition),
+        top: Math.max(0, scrollPosition),
         behavior: 'smooth'
       });
     });
