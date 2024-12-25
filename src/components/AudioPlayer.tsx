@@ -36,23 +36,22 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // Don't scroll if we're not playing
     if (!isPlaying) return;
     
-    requestAnimationFrame(() => {
-      const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-      if (!verseElement) return;
+    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+    if (!verseElement) return;
 
-      const headerElement = document.querySelector('.fixed');
-      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
-      
-      const elementRect = verseElement.getBoundingClientRect();
-      
-      // Add extra padding (e.g., 20px) to ensure the verse is clearly visible below the header
-      const padding = 20;
-      const scrollPosition = window.pageYOffset + elementRect.top - headerHeight - padding;
-      
-      window.scrollTo({
-        top: Math.max(0, scrollPosition),
-        behavior: 'smooth'
-      });
+    const headerElement = document.querySelector('.fixed');
+    const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 0;
+    
+    // Add extra padding to ensure the verse is clearly visible
+    const padding = 100; // Increased padding for better visibility
+    const scrollPosition = verseElement.getBoundingClientRect().top + 
+                          window.pageYOffset - 
+                          headerHeight - 
+                          padding;
+    
+    window.scrollTo({
+      top: Math.max(0, scrollPosition),
+      behavior: 'smooth'
     });
   };
 
