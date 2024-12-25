@@ -43,17 +43,24 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   } = useAudioQueue({
     verses,
     recitationLanguage,
-    selectedReciter, // Pass selectedReciter to useAudioQueue
+    selectedReciter,
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-        if (verseElement) {
-          verseElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          });
-        }
+        // Add a slight delay to ensure the header is fully rendered
+        setTimeout(() => {
+          const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
+          if (verseElement) {
+            const headerHeight = 200; // Approximate header height
+            const elementPosition = verseElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
       }
     },
   });
