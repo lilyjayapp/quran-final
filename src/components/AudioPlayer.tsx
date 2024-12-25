@@ -32,26 +32,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     handleLanguageChange,
   } = useAudioState();
 
-  const scrollToVerse = (verseNumber: number) => {
-    const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
-    if (verseElement) {
-      // Get the header height
-      const headerElement = document.querySelector('.fixed');
-      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 200;
-      
-      // Calculate the scroll position
-      const elementRect = verseElement.getBoundingClientRect();
-      const absoluteElementTop = elementRect.top + window.pageYOffset;
-      const middle = window.innerHeight / 3; // Adjusted to show more context
-      const scrollTo = absoluteElementTop - headerHeight - middle + (elementRect.height / 2);
-      
-      window.scrollTo({
-        top: Math.max(0, scrollTo),
-        behavior: 'smooth'
-      });
-    }
-  };
-
   const {
     isPlaying,
     isLoading,
@@ -67,7 +47,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     onVerseChange: (verseNumber) => {
       if (onVerseChange) {
         onVerseChange(verseNumber);
-        scrollToVerse(verseNumber);
       }
     },
   });
