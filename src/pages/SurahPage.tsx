@@ -19,8 +19,8 @@ const SurahPage = () => {
     setTimeout(() => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
-        // Significantly reduced header offset for better visibility
-        const headerOffset = 80;
+        // Increased header offset to prevent content being hidden under header
+        const headerOffset = 120;
         const elementPosition = verseElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -51,7 +51,7 @@ const SurahPage = () => {
             if (Math.abs(verseElement.getBoundingClientRect().top) > 10) {
               verseElement.scrollIntoView({
                 behavior: 'smooth',
-                block: 'center',
+                block: 'start',
                 inline: 'nearest'
               });
             }
