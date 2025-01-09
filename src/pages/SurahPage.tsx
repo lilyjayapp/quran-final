@@ -18,8 +18,8 @@ const SurahPage = () => {
     setTimeout(() => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
-        // Reduced header offset from 220 to 150 for smoother transitions
-        const headerOffset = 150;
+        // Further reduced header offset from 150 to 120 for better visibility
+        const headerOffset = 120;
         const elementPosition = verseElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -45,12 +45,12 @@ const SurahPage = () => {
             });
           }
           
-          // Fallback to scrollIntoView with a smaller timeout
+          // Reduced threshold from 50 to 30 for more precise scrolling
           setTimeout(() => {
-            if (Math.abs(verseElement.getBoundingClientRect().top) > 50) {
+            if (Math.abs(verseElement.getBoundingClientRect().top) > 30) {
               verseElement.scrollIntoView({
                 behavior: 'smooth',
-                block: 'center',
+                block: 'start',
                 inline: 'nearest'
               });
             }
@@ -63,7 +63,7 @@ const SurahPage = () => {
           });
         }
       }
-    }, 50); // Reduced timeout from 100 to 50ms for quicker response
+    }, 50);
   };
 
   if (isLoading) {
