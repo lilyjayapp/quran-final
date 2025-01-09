@@ -20,7 +20,7 @@ const SurahPage = () => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
         // Calculate the scroll position
-        const headerOffset = 180; // Adjust this value based on your header height
+        const headerOffset = 180;
         const elementPosition = verseElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -37,11 +37,24 @@ const SurahPage = () => {
         const isInWixIframe = window.top !== window.self;
         
         if (isInWixIframe) {
-          // Use scrollIntoView with smooth behavior for Wix iframe
-          verseElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-          });
+          // Enhanced scrolling for Wix iframe
+          const container = document.querySelector('.container');
+          if (container) {
+            container.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+          
+          // Fallback to scrollIntoView if container scroll doesn't work
+          setTimeout(() => {
+            if (Math.abs(verseElement.getBoundingClientRect().top) > 100) {
+              verseElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+              });
+            }
+          }, 100);
         } else {
           // Regular scroll for non-Wix environments
           window.scrollTo({
@@ -107,7 +120,7 @@ const SurahPage = () => {
         </div>
       </div>
       
-      <div className="container pt-48 pb-16">
+      <div className="container pt-48 pb-16 overflow-y-auto h-[calc(100vh-180px)]">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
