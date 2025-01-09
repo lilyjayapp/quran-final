@@ -15,12 +15,11 @@ const SurahPage = () => {
   const handleVerseChange = (verseNumber: number) => {
     setCurrentVerseNumber(verseNumber);
     
-    // Add a small delay to ensure DOM is updated
     setTimeout(() => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
-        // Calculate the scroll position
-        const headerOffset = 180;
+        // Increased header offset to prevent text from going under header
+        const headerOffset = 220;
         const elementPosition = verseElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -51,7 +50,8 @@ const SurahPage = () => {
             if (Math.abs(verseElement.getBoundingClientRect().top) > 100) {
               verseElement.scrollIntoView({
                 behavior: 'smooth',
-                block: 'center'
+                block: 'start',
+                inline: 'nearest'
               });
             }
           }, 100);
@@ -120,7 +120,7 @@ const SurahPage = () => {
         </div>
       </div>
       
-      <div className="container pt-48 pb-16 overflow-y-auto h-[calc(100vh-180px)]">
+      <div className="container pt-56 pb-16 overflow-y-auto h-[calc(100vh-180px)]">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
