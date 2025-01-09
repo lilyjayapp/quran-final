@@ -45,9 +45,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     recitationLanguage,
     selectedReciter,
     onVerseChange: (verseNumber) => {
-      // Only trigger verse change if audio is actually playing
-      // and not during initial play button press
-      if (isPlaying && onVerseChange) {
+      // Only trigger verse change after audio has started playing
+      // and not during the initial play button press
+      if (isPlaying && onVerseChange && currentIndex > 0) {
         onVerseChange(verseNumber);
       }
     },
