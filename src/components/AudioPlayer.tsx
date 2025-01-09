@@ -45,9 +45,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     recitationLanguage,
     selectedReciter,
     onVerseChange: (verseNumber) => {
-      if (onVerseChange) {
-        onVerseChange(verseNumber);
-      }
+      // Add a small delay to ensure the audio is ready before scrolling
+      setTimeout(() => {
+        if (onVerseChange) {
+          onVerseChange(verseNumber);
+        }
+      }, 100);
     },
   });
 
