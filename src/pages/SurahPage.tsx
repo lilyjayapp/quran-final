@@ -19,8 +19,8 @@ const SurahPage = () => {
     setTimeout(() => {
       const verseElement = document.querySelector(`[data-verse="${verseNumber}"]`);
       if (verseElement) {
-        // Reduced header offset for initial scroll
-        const headerOffset = 100;
+        // Significantly reduced header offset for better visibility
+        const headerOffset = 80;
         const elementPosition = verseElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -46,16 +46,16 @@ const SurahPage = () => {
             });
           }
           
-          // Reduced threshold for more precise scrolling
+          // Minimal threshold for precise scrolling
           setTimeout(() => {
-            if (Math.abs(verseElement.getBoundingClientRect().top) > 20) {
+            if (Math.abs(verseElement.getBoundingClientRect().top) > 10) {
               verseElement.scrollIntoView({
                 behavior: 'smooth',
-                block: 'start',
+                block: 'center',
                 inline: 'nearest'
               });
             }
-          }, 50);
+          }, 100);
         } else {
           // Regular scroll for non-Wix environments
           window.scrollTo({
@@ -64,7 +64,7 @@ const SurahPage = () => {
           });
         }
       }
-    }, 50);
+    }, 100);
   };
 
   if (isLoading) {
