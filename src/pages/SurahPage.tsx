@@ -37,16 +37,10 @@ const SurahPage = () => {
         const isInWixIframe = window.top !== window.self;
         
         if (isInWixIframe) {
-          // Use scrollIntoView for Wix iframe
+          // Use scrollIntoView with smooth behavior for Wix iframe
           verseElement.scrollIntoView({
             behavior: 'smooth',
-            block: 'start'
-          });
-          
-          // Additional scroll adjustment for header
-          window.scrollBy({
-            top: -headerOffset,
-            behavior: 'smooth'
+            block: 'center'
           });
         } else {
           // Regular scroll for non-Wix environments
