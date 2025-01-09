@@ -120,7 +120,7 @@ const SurahPage = () => {
         </div>
       </div>
       
-      <div className="container pt-72 pb-16 overflow-y-auto h-[calc(100vh-180px)]">
+      <div className="container pt-72 pb-4 overflow-y-auto h-[calc(100vh-4rem)]">
         <div className="max-w-3xl mx-auto">
           {surah?.verses.map((verse) => (
             <div 
